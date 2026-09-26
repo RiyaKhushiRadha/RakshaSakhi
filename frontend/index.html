@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#121212">
+    <title>RakshaSakhi</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app-container">
+        
+        <!-- Top App Bar -->
+        <header class="app-bar">
+            <h1 class="brand-title">RakshaSakhi</h1>
+            <div id="safety-badge" class="badge safe">Safe / Monitoring</div>
+        </header>
+
+        <!-- SCREEN 1: Trigger Screen -->
+        <section id="screen-trigger" class="screen active">
+            <div class="voice-guard-indicator">
+                <span class="icon">🎤</span> Voice Detection: Inactive (Demo Mode)
+            </div>
+            
+            <div class="sos-container">
+                <button id="sos-button" class="sos-btn">
+                    <span class="sos-text">SOS</span>
+                </button>
+                <p class="sos-instruction">Tap in emergency</p>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: Chatbot Screen -->
+        <section id="screen-chat" class="screen hidden">
+            <div class="chat-header">
+                <button id="btn-back-chat" class="icon-btn">← Back</button>
+                <div class="siren-toggle">
+                    <label class="switch">
+                        <input type="checkbox" id="siren-checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <span>Sound Siren</span>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    Deep breaths. Stay calm, help is being notified. Where are you right now?
+                </div>
+            </div>
+            
+            <div class="quick-replies">
+                <button class="chip">I'm being followed</button>
+                <button class="chip">Send location now</button>
+                <button class="chip">Call police</button>
+            </div>
+            
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Type a message...">
+                <button id="btn-send-chat" class="send-btn">Send</button>
+            </div>
+            
+            <button id="btn-view-status" class="nav-btn secondary-btn">View Alert Status</button>
+        </section>
+
+        <!-- SCREEN 3: Alert Status Screen -->
+        <section id="screen-status" class="screen hidden">
+            <h2>Emergency Status</h2>
+            
+            <div class="status-card">
+                <div class="status-row">
+                    <span class="label">Triggered At:</span>
+                    <span class="value" id="status-time">--:--</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Location:</span>
+                    <span class="value">Fetching... (Mocked)</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Telegram Alert:</span>
+                    <span class="value pending">Pending</span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="sms:112?body=Emergency!%20Need%20help." class="btn fallback-sms-btn">
+                    Fallback SMS
+                </a>
+                
+                <button id="btn-reset" class="btn reset-btn">
+                    I am safe now / Reset
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
