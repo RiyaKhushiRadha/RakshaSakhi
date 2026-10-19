@@ -14,8 +14,9 @@
         
         <!-- Top App Bar -->
         <header class="app-bar">
+            <div class="menu-icon">☰</div>
             <h1 class="brand-title">RakshaSakhi</h1>
-            <div id="safety-badge" class="badge safe">Safe / Monitoring</div>
+            <div id="safety-badge" class="info-icon">ℹ</div>
         </header>
 
         <!-- SCREEN 1: Trigger Screen -->
@@ -29,6 +30,11 @@
                     <span class="sos-text">SOS</span>
                 </button>
                 <p class="sos-instruction">Tap in emergency</p>
+            </div>
+
+            <!-- Floating Companion Widget (Mode A - Daily Wellness) -->
+            <div id="fab-daily-chat" class="floating-chat-btn">
+                <span class="fab-text">Hi 💬</span>
             </div>
         </section>
 
@@ -46,9 +52,7 @@
             </div>
             
             <div class="chat-messages" id="chat-messages">
-                <div class="message bot">
-                    Deep breaths. Stay calm, help is being notified. Where are you right now?
-                </div>
+                <!-- Chat messages appended dynamically -->
             </div>
             
             <div class="quick-replies">

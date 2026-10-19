@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Buttons
     const btnSOS = document.getElementById('sos-button');
+    const btnFabChat = document.getElementById('fab-daily-chat');
     const btnBackChat = document.getElementById('btn-back-chat');
     const btnViewStatus = document.getElementById('btn-view-status');
     const btnReset = document.getElementById('btn-reset');
@@ -21,6 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // State
     let triggerTimestamp = null;
+    let currentMode = 'daily';
+    let sessionId = 'session-' + Math.random().toString(36).substring(2, 9);
+    let chatInitialized = false;
 
     // Utility: Switch Screens
     function switchScreen(screenName) {
@@ -40,7 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (screenName === 'chat') {
             screenChat.classList.remove('hidden');
             screenChat.classList.add('active');
-            updateBadge('danger');
+            updateBadge(currentMode === 'emergency' ? 'danger' : 'safe');
+            
+            // Only fetch if first time or explicitly forced
+            if (!chatInitialized || currentMode === 'emergency') {
+                chatInitialized = true;
+                fetchWelcomeGreeting();
+            }
         } else if (screenName === 'status') {
             screenStatus.classList.remove('hidden');
             screenStatus.classList.add('active');
@@ -50,11 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Utility: Update Top Badge
     function updateBadge(state) {
         if (state === 'safe') {
-            safetyBadge.className = 'badge safe';
-            safetyBadge.innerText = 'Safe / Monitoring';
+            safetyBadge.classList.remove('danger');
         } else {
-            safetyBadge.className = 'badge danger';
-            safetyBadge.innerText = 'Emergency Active';
+            safetyBadge.classList.add('danger');
         }
     }
 
@@ -71,16 +79,41 @@ document.addEventListener('DOMContentLoaded', () => {
         return msgDiv;
     }
 
-    // Event Listeners
+    // Fetch proactive welcome message
+    async function fetchWelcomeGreeting() {
+        chatMessages.innerHTML = ''; // Clear previous messages
+        const typingId = 'typing-' + Date.now();
+        appendMessage("RakshaSakhi is typing...", 'bot', typingId);
+        
+        try {
+            const response = await fetch(`/api/chat/welcome?mode=${currentMode}&session_id=${sessionId}`);
+            const data = await response.json();
+            
+            document.getElementById(typingId).remove();
+            appendMessage(data.reply, 'bot');
+        } catch (error) {
+            console.error('Failed to fetch welcome greeting:', error);
+            document.getElementById(typingId).remove();
+            appendMessage("Hello, I am RakshaSakhi. How can I help you?", 'bot');
+        }
+    }
+
+    // Mode A: Daily Wellness / Chat Button
+    btnFabChat.addEventListener('click', () => {
+        currentMode = 'daily';
+        switchScreen('chat');
+    });
+
+    // Mode B: Emergency SOS Button
     btnSOS.addEventListener('click', async () => {
         // Record time
         const now = new Date();
         triggerTimestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         statusTime.innerText = triggerTimestamp;
         
+        currentMode = 'emergency';
+        
         try {
-            // Note: Sending 'type' to match Pydantic schema defined previously, 
-            // and 'trigger_type' to be robust based on backend expectations.
             const response = await fetch('/api/trigger', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -123,12 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     btnReset.addEventListener('click', () => {
-        // Reset chat
-        chatMessages.innerHTML = `
-            <div class="message bot">
-                Deep breaths. Stay calm, help is being notified. Where are you right now?
-            </div>
-        `;
+        currentMode = 'daily'; // Reset mode
+        chatInitialized = false; // Force re-fetch of welcome greeting next time
         
         // Reset status visuals
         statusTime.innerText = '--:--';
@@ -155,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text })
+                    body: JSON.stringify({ message: text, session_id: sessionId, mode: currentMode })
                 });
                 const data = await response.json();
                 
@@ -167,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Failed to send chat message:', error);
                 // Graceful degradation on failure
                 document.getElementById(typingId).remove();
-                appendMessage("Network error. Please call the police immediately.", 'bot');
+                appendMessage("Network error. Please try again or call for help.", 'bot');
             }
         }
     }
