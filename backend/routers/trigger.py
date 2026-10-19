@@ -6,9 +6,12 @@ router = APIRouter()
 
 @router.post("/trigger")
 async def handle_trigger(request: TriggerRequest):
-    return {
+    response = {
         "status": "triggered",
         "mode": request.type,
         "message": "Emergency sequence initiated",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
+    if request.location:
+        response["location"] = request.location
+    return response

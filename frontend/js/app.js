@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const screenStatus = document.getElementById('screen-status');
     const safetyBadge = document.getElementById('safety-badge');
     const statusTime = document.getElementById('status-time');
+    const statusLocation = document.getElementById('status-location') || document.querySelectorAll('#screen-status .status-row .value')[1];
     const chatMessages = document.getElementById('chat-messages');
     
     // Buttons
@@ -25,6 +26,40 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMode = 'daily';
     let sessionId = 'session-' + Math.random().toString(36).substring(2, 9);
     let chatInitialized = false;
+    let currentLocation = null;
+
+    // Helper: Geolocation retrieval with timeout & graceful fallback
+    function getUserLocation(timeoutMs = 5000) {
+        return new Promise((resolve) => {
+            if (!navigator.geolocation) {
+                console.warn('Geolocation is not supported by this browser.');
+                resolve(null);
+                return;
+            }
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: timeoutMs,
+                maximumAge: 10000
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const loc = {
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    };
+                    resolve(loc);
+                },
+                (error) => {
+                    console.warn('Geolocation error / permission denied:', error.message);
+                    resolve(null);
+                },
+                options
+            );
+        });
+    }
 
     // Utility: Switch Screens
     function switchScreen(screenName) {
@@ -112,12 +147,35 @@ document.addEventListener('DOMContentLoaded', () => {
         statusTime.innerText = triggerTimestamp;
         
         currentMode = 'emergency';
-        
+
+        if (statusLocation) {
+            statusLocation.innerText = 'Acquiring GPS...';
+        }
+
+        // 1. Fetch live GPS coordinates
+        currentLocation = await getUserLocation();
+
+        // 2. Update screen-status location label
+        if (statusLocation) {
+            if (currentLocation && currentLocation.lat && currentLocation.lon) {
+                statusLocation.innerText = `${currentLocation.lat.toFixed(4)}, ${currentLocation.lon.toFixed(4)}`;
+            } else {
+                statusLocation.innerText = 'Location captured (Mocked/Unavailable)';
+            }
+        }
+
+        // 3. Dispatch trigger payload with location
+        const triggerPayload = {
+            type: 'button',
+            trigger_type: 'button',
+            location: currentLocation
+        };
+
         try {
             const response = await fetch('/api/trigger', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'button', trigger_type: 'button' })
+                body: JSON.stringify(triggerPayload)
             });
             const data = await response.json();
             console.log('Trigger response:', data);
@@ -128,8 +186,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Move to chat screen regardless of API success (graceful fallback)
         switchScreen('chat');
         
-        // Trigger telegram alert in the background as well
-        fetch('/api/alert/telegram', { method: 'POST' }).catch(e => console.error('Telegram alert failed:', e));
+        // 4. Trigger telegram alert with location in the background
+        const alertPayload = {
+            type: 'button',
+            location: currentLocation
+        };
+        fetch('/api/alert/telegram', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(alertPayload)
+        }).catch(e => console.error('Telegram alert failed:', e));
     });
 
     btnBackChat.addEventListener('click', () => {
@@ -158,9 +224,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btnReset.addEventListener('click', () => {
         currentMode = 'daily'; // Reset mode
         chatInitialized = false; // Force re-fetch of welcome greeting next time
+        currentLocation = null;
         
         // Reset status visuals
         statusTime.innerText = '--:--';
+        if (statusLocation) {
+            statusLocation.innerText = 'Fetching... (Mocked)';
+        }
         telegramStatus.innerText = 'Pending';
         telegramStatus.style.color = '#ffd60a';
         
@@ -180,11 +250,18 @@ document.addEventListener('DOMContentLoaded', () => {
             appendMessage("RakshaSakhi is typing...", 'bot', typingId);
             
             try {
-                // 3. Send async POST request to chatbot endpoint
+                // 3. Send async POST request to chatbot endpoint with location
+                const chatPayload = {
+                    message: text,
+                    session_id: sessionId,
+                    mode: currentMode,
+                    location: currentLocation
+                };
+
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, session_id: sessionId, mode: currentMode })
+                    body: JSON.stringify(chatPayload)
                 });
                 const data = await response.json();
                 
