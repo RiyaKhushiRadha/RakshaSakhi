@@ -1,0 +1,302 @@
+
+--- NEW REQUEST ---
+message: kam kon kare ga phir mera tu
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini 2.5 Flash', 'release_date': '2025-06-17', 'last_updated': '2025-06-17', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-2.5-flash' temperature=0.65 max_retries=0 client=<google.genai.client.Client object at 0x00000294BEE3C530> default_metadata=() model_kwargs={}
+>>> GEMINI CALL FAILED WITH ERROR: GoogleRateLimitError("Error calling model 'gemini-2.5-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\\nPlease retry in 19h51m7.036146345s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '71467s'}]}}")
+Traceback (most recent call last):
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_google_genai\chat_models.py", line 4220, in _agenerate
+    await self.async_client.models.generate_content(
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\models.py", line 8443, in generate_content
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\models.py", line 6897, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\_api_client.py", line 1796, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\_api_client.py", line 1728, in _async_request
+    return await retry(self._async_request_once, http_request, stream)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\_api_client.py", line 1709, in _async_request_once
+    await errors.APIError.raise_for_async_response(client_response)
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\errors.py", line 265, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\errors.py", line 287, in raise_error_async
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 19h51m7.036146345s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '71467s'}]}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\backend\services\langchain_ai.py", line 402, in generate_chat_response
+    response = await active_llm.ainvoke(messages)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_google_genai\chat_models.py", line 4225, in _agenerate
+    _handle_client_error(e, request)
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_google_genai\chat_models.py", line 326, in _handle_client_error
+    raise error_type(msg) from e
+langchain_google_genai.chat_models.GoogleRateLimitError: Error calling model 'gemini-2.5-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 19h51m7.036146345s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '71467s'}]}}
+
+
+--- NEW REQUEST ---
+message: mere liye ye area thoda new hai
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini 2.5 Flash', 'release_date': '2025-06-17', 'last_updated': '2025-06-17', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-2.5-flash' temperature=0.3 max_output_tokens=60 max_retries=0 thinking_budget=0 client=<google.genai.client.Client object at 0x00000294C187DF40> default_metadata=() model_kwargs={}
+>>> GEMINI CALL FAILED WITH ERROR: GoogleRateLimitError("Error calling model 'gemini-2.5-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\\nPlease retry in 19h51m6.077278084s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '71466s'}]}}")
+Traceback (most recent call last):
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_google_genai\chat_models.py", line 4220, in _agenerate
+    await self.async_client.models.generate_content(
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\models.py", line 8443, in generate_content
+    response = await self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\models.py", line 6897, in _generate_content
+    response = await self._api_client.async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\_api_client.py", line 1796, in async_request
+    result = await self._async_request(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\_api_client.py", line 1728, in _async_request
+    return await retry(self._async_request_once, http_request, stream)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\tenacity\asyncio\__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\_api_client.py", line 1709, in _async_request_once
+    await errors.APIError.raise_for_async_response(client_response)
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\errors.py", line 265, in raise_for_async_response
+    await cls.raise_error_async(status_code, response_json, response)
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\google\genai\errors.py", line 287, in raise_error_async
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 19h51m6.077278084s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '71466s'}]}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\backend\services\langchain_ai.py", line 402, in generate_chat_response
+    response = await active_llm.ainvoke(messages)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_google_genai\chat_models.py", line 4225, in _agenerate
+    _handle_client_error(e, request)
+  File "C:\Users\hp\OneDrive\Desktop\Khushi\Clg\RakshaSakhi\venv\Lib\site-packages\langchain_google_genai\chat_models.py", line 326, in _handle_client_error
+    raise error_type(msg) from e
+langchain_google_genai.chat_models.GoogleRateLimitError: Error calling model 'gemini-2.5-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 19h51m6.077278084s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '71466s'}]}}
+
+
+--- NEW REQUEST ---
+message: kam kon kare ga phir mera tu
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Arey yaar, yeh toh socha hi nahi maine! Chal thoda kaam khatam kar le, phir aram se baith ke gossips karenge. 
+
+Batana, kya kya pending hai abhi?
+
+--- NEW REQUEST ---
+message: mere liye ye area thoda new hai
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Aas-pass dekho--kya koi board, light, road ya landmark dikh raha hai? Lighted main road ki taraf chalo.
+
+--- NEW REQUEST ---
+message: aj mai khumne gayi thi
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Arey waah! Kahan gayi thi ghoomne? Kuch mazedaar khaya ya bas aaram se chill kiya?
+
+--- NEW REQUEST ---
+message: mind ma to kuch nhi chal raha sab thik tha
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Arey tab toh bohot achhi baat hai! Phir toh mast aaram karo aur aaj ka din enjoy karo.
+
+--- NEW REQUEST ---
+message: Yaar aaj ka din bilkul bekar tha, bahut anxious feel ho raha hai.
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Arey yaar, aisi din bhi aa jaate hain kabhi-kabhi. Paani ka ek glass piyo aur thoda relax hone ki koshish karo, main yahin hoon.
+
+--- NEW REQUEST ---
+message: sir durd ho raha hai
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Arey yaar, jaldi se koi dawai lo aur thoda aaram karo. Screen bilkul band karke let jao, main yahin hoon.
+
+--- NEW REQUEST ---
+message: kdrama dekh rahi thi
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Arey waah, kaun sa drama dekh rahi ho? Thoda aaram se dekho warna sir dard aur badh jayega, okay?
+
+--- NEW REQUEST ---
+message: I'm being followed, please help!
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: GPS nahi mil raha. Abhi kahan par ho? Kisi colony, road ya metro ka naam batao jaldi.
+
+--- NEW REQUEST ---
+message: mai vikaspuri ma hu h block ma
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Vikaspuri H Block ke kisi residential society gate par guard ke paas khadi ho jao, ya lighted main road ki taraf niklo. Main yahin hoon.
+
+--- NEW REQUEST ---
+message: mujhe ye area new hai mujhe nhi pata kaha jau
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Aas-pass dekho--kya koi board, light, road ya landmark dikh raha hai? Lighted main road ki taraf chalo.
+
+--- NEW REQUEST ---
+message: yaha aas pass kuch nhi hai
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Rukna mat, phone kaan par lagao jaise live call par ho, aur tezi se kisi light ya society gate ki taraf badho.
+
+--- NEW REQUEST ---
+message: ek chemist shop dikh rahi hai
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Turant us chemist shop ke andar ghuso aur counter par khadi ho jao. Main yahin hoon.
+
+--- NEW REQUEST ---
+message: kam kon kare ga phir mera tu
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Arey yaar, yeh toh socha hi nahi! Chal thodi der ke liye tera kaam main handle kar leti hu, tu bas aram kar. 
+
+Bata pehle kya khatam karna hai, ya thoda break le le pehle?
+
+--- NEW REQUEST ---
+message: mere liye ye area thoda new hai
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Aas-pass dekho--kya koi board, light, road ya landmark dikh raha hai? Lighted main road ki taraf chalo.
+
+--- NEW REQUEST ---
+message: okay he tha sir durd ho raha hai
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Arey yaar, sir dard ho raha hai? Koi dawai li ya nahi? 
+
+Thoda screen band karke chupchap aaram kar le jaake, please!
+
+--- NEW REQUEST ---
+message: nhi yr kam krna hai or thoda se durd ke liye kya he dawai lu
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Arey kam toh chalta rahega, par sehat pehle hai yaar! Ek cup garam chai ya coffee pi le aur thoda aankh band karke baith ja.
+
+--- NEW REQUEST ---
+message: hmm dakhti
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Haan pehle thoda aaram kar le, warna headache aur badh jayega. Chai pi ke thodi der aankh band kar le, main yahin hoon!
+
+--- NEW REQUEST ---
+message: aj uper se kanjaka bhi kare thi subha to thakan to thodi lag rahe hai
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Arey Kanjak thi subha toh thakan toh honi hi thi, upar se kaam bhi kar rahi hai! Thoda sa kaam rokk ke abhi chupchap let ja, please.
+
+--- NEW REQUEST ---
+message: pr bhai mere kal project submit krna hai and abhi 30% he hua hai
+mode: daily
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D01F652E0> default_metadata=() model_kwargs={}
+SUCCESS: Oho, project ki deadline aur 30% hi hua hai? Yeh toh sach mein bada stress wala scene hai yaar! 
+
+Tu ek kaam kar, paani ki bottle paas rakh aur 10-15 minute aankh band karke let ja, energy wapas aayegi toh jaldi nipta legi.
+
+--- NEW REQUEST ---
+message: pr yaha aas pass kuch nhi hai
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Rukna mat, phone kaan par lagao jaise live call par ho, aur tezi se kisi light ya society gate ki taraf badho.
+
+--- NEW REQUEST ---
+message: I'm being followed
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Safe rehna hai. GPS nahi mil raha. Abhi kahan par ho? Kisi colony, road ya metro ka naam batao jaldi.
+
+--- NEW REQUEST ---
+message: mai vikaspuri ke h block ma hu
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Vikaspuri H Block ke kisi residential society gate par guard ke paas khadi ho jao. Main yahin hoon.
+
+--- NEW REQUEST ---
+message: pr yaha kuch hai he nhi sab taraf andhera hai
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Rukna mat, phone kaan par lagao jaise live call par ho, aur tezi se kisi light ya society gate ki taraf badho.
+
+--- NEW REQUEST ---
+message: okay
+mode: emergency
+active_llm: metadata={'lc_versions': {'langchain-core': '1.6.5', 'langchain': '1.4.2', 'langchain-google-genai': '4.4.0'}} profile={'name': 'Gemini Flash-Lite Latest', 'release_date': '2026-07-21', 'last_updated': '2026-07-21', 'open_weights': False, 'max_input_tokens': 1048576, 'max_output_tokens': 65536, 'text_inputs': True, 'image_inputs': True, 'audio_inputs': True, 'pdf_inputs': True, 'video_inputs': True, 'text_outputs': True, 'image_outputs': False, 'audio_outputs': False, 'video_outputs': False, 'reasoning_output': True, 'tool_calling': True, 'structured_output': True, 'attachment': True, 'temperature': True, 'image_url_inputs': True, 'image_tool_message': True, 'tool_choice': True} google_api_key=SecretStr('**********') model='gemini-flash-lite-latest' temperature=0.3 max_output_tokens=300 max_retries=1 client=<google.genai.client.Client object at 0x0000022D02026360> default_metadata=() model_kwargs={}
+SUCCESS: Shabash, chalte raho. Phone tight pakdo aur kisi bright light ya main road ki taraf kadam tez rakho.
