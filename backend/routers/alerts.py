@@ -1,8 +1,12 @@
+import asyncio
 import logging
 from typing import Optional, Union, Any
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 import httpx
+
 from backend.config.settings import settings
+from backend.database import get_db, Contact
 from backend.models.schemas import AlertRequest
 
 logger = logging.getLogger(__name__)
@@ -37,21 +41,50 @@ def format_location_string(location: Optional[Union[dict, str, Any]]) -> str:
 
 
 @router.post("/alert/telegram")
-async def send_telegram_alert(payload: Optional[AlertRequest] = None):
+async def send_telegram_alert(
+    payload: Optional[AlertRequest] = None,
+    db: Session = Depends(get_db)
+):
     """
-    Send an emergency SOS alert to the configured Telegram chat with live location.
+    Send an emergency SOS alert to all saved contacts with Telegram Chat IDs (concurrent broadcast),
+    falling back to settings.TELEGRAM_CHAT_ID if no contacts with Telegram IDs exist.
     """
     bot_token = settings.TELEGRAM_BOT_TOKEN
-    chat_id = settings.TELEGRAM_CHAT_ID
 
-    if not bot_token or not chat_id:
-        logger.error("Telegram alert failed: Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID.")
+    if not bot_token:
+        logger.error("Telegram alert failed: Missing TELEGRAM_BOT_TOKEN.")
         return {
             "status": "error",
-            "message": "Telegram bot token or chat ID is not configured.",
+            "message": "Telegram bot token is not configured.",
             "channel": "telegram"
         }
 
+    # 1. Collect target chat IDs: settings.TELEGRAM_CHAT_ID (if set) + all active contacts from DB
+    target_chat_ids = []
+    if settings.TELEGRAM_CHAT_ID and str(settings.TELEGRAM_CHAT_ID).strip():
+        target_chat_ids.append(str(settings.TELEGRAM_CHAT_ID).strip())
+
+    contacts_with_telegram = (
+        db.query(Contact)
+        .filter(Contact.telegram_chat_id.isnot(None), Contact.telegram_chat_id != "")
+        .all()
+    )
+    for c in contacts_with_telegram:
+        if c.telegram_chat_id and c.telegram_chat_id.strip():
+            target_chat_ids.append(c.telegram_chat_id.strip())
+
+    # Deduplicate while preserving order
+    target_chat_ids = list(dict.fromkeys(target_chat_ids))
+
+    if not target_chat_ids:
+        logger.error("Telegram alert failed: No emergency contacts with Telegram ID and no settings.TELEGRAM_CHAT_ID configured.")
+        return {
+            "status": "error",
+            "message": "No emergency contacts with Telegram Chat ID found and fallback TELEGRAM_CHAT_ID is not configured.",
+            "channel": "telegram"
+        }
+
+    # 3. Prepare message payload
     loc_str = format_location_string(payload.location if payload else None)
     message_text = (
         "🚨 *EMERGENCY SOS ALERT!*\n\n"
@@ -60,62 +93,80 @@ async def send_telegram_alert(payload: Optional[AlertRequest] = None):
     )
 
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    body = {
-        "chat_id": chat_id,
-        "text": message_text,
-        "parse_mode": "Markdown"
-    }
 
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+    # 4. Helper for individual chat dispatch
+    async def _send_to_chat(client: httpx.AsyncClient, chat_id: str) -> dict:
+        body = {
+            "chat_id": chat_id,
+            "text": message_text,
+            "parse_mode": "Markdown"
+        }
+        try:
             response = await client.post(url, json=body)
-            response.raise_for_status()
+            if response.status_code >= 400:
+                logger.error(f"Telegram HTTP error {response.status_code} for chat {chat_id}: {response.text}")
+                return {"chat_id": chat_id, "success": False, "error": f"HTTP error {response.status_code}"}
             data = response.json()
-
             if not data.get("ok"):
                 error_desc = data.get("description", "Unknown Telegram API error")
-                logger.error(f"Telegram API returned error: {error_desc}")
-                return {
-                    "status": "error",
-                    "message": f"Telegram API error: {error_desc}",
-                    "channel": "telegram"
-                }
+                logger.error(f"Telegram API returned error for chat {chat_id}: {error_desc}")
+                return {"chat_id": chat_id, "success": False, "error": error_desc}
+            return {"chat_id": chat_id, "success": True}
+        except Exception as exc:
+            logger.error(f"Telegram alert exception for chat {chat_id}: {exc}")
+            return {"chat_id": chat_id, "success": False, "error": str(exc)}
 
-        logger.info(f"Telegram emergency alert sent successfully to chat_id: {chat_id}")
-        return {
-            "status": "sent",
-            "channel": "telegram"
-        }
-    except httpx.HTTPStatusError as exc:
-        logger.error(f"Telegram HTTP error: {exc.response.text}")
-        return {
-            "status": "error",
-            "message": f"Telegram HTTP error: {exc.response.text}",
-            "channel": "telegram"
-        }
+    # 5. Concurrent broadcast using asyncio.gather
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            tasks = [_send_to_chat(client, cid) for cid in target_chat_ids]
+            results = await asyncio.gather(*tasks)
+
+        successful_sends = [r for r in results if r.get("success")]
+        if successful_sends:
+            logger.info(f"Telegram SOS broadcast sent successfully to {len(successful_sends)}/{len(target_chat_ids)} recipients.")
+            return {
+                "status": "sent",
+                "channel": "telegram",
+                "recipients_sent": len(successful_sends),
+                "total_recipients": len(target_chat_ids)
+            }
+        else:
+            errors = [r.get("error") for r in results]
+            return {
+                "status": "error",
+                "message": f"Broadcast failed for all recipients: {'; '.join(filter(None, errors))}",
+                "channel": "telegram"
+            }
     except Exception as exc:
-        logger.error(f"Telegram alert exception: {exc}")
+        logger.error(f"Telegram broadcast exception: {exc}")
         return {
             "status": "error",
-            "message": f"Failed to send alert: {str(exc)}",
+            "message": f"Failed to send broadcast alert: {str(exc)}",
             "channel": "telegram"
         }
 
 
 @router.get("/alert/status")
-async def alert_status():
+async def alert_status(db: Session = Depends(get_db)):
     """
     Check if alert channels (Telegram) are configured properly.
     """
-    telegram_configured = bool(
-        settings.TELEGRAM_BOT_TOKEN
-        and str(settings.TELEGRAM_BOT_TOKEN).strip()
-        and settings.TELEGRAM_CHAT_ID
-        and str(settings.TELEGRAM_CHAT_ID).strip()
+    has_bot_token = bool(settings.TELEGRAM_BOT_TOKEN and str(settings.TELEGRAM_BOT_TOKEN).strip())
+    has_fallback_chat = bool(settings.TELEGRAM_CHAT_ID and str(settings.TELEGRAM_CHAT_ID).strip())
+
+    # Check if there are any contacts with telegram_chat_id in DB
+    contacts_count = (
+        db.query(Contact)
+        .filter(Contact.telegram_chat_id.isnot(None), Contact.telegram_chat_id != "")
+        .count()
     )
+
+    telegram_configured = has_bot_token and (has_fallback_chat or contacts_count > 0)
 
     return {
         "status": "healthy" if telegram_configured else "unconfigured",
         "telegram_configured": telegram_configured,
+        "contacts_with_telegram": contacts_count,
         "message": "Alert system is operational" if telegram_configured else "Telegram credentials are not configured"
     }
