@@ -27,6 +27,70 @@ document.addEventListener('DOMContentLoaded', () => {
     let sessionId = 'session-' + Math.random().toString(36).substring(2, 9);
     let chatInitialized = false;
     let currentLocation = null;
+    let triggerSource = 'button'; // becomes 'voice' when the keyword detector fires
+
+    // ==========================================================
+    // Siren
+    // ==========================================================
+    const sirenAudio = new Audio('/assets/audio/siren.mp3');
+    sirenAudio.loop = true;
+    const sirenCheckbox = document.getElementById('siren-checkbox');
+
+    function setSiren(on) {
+        if (on) {
+            sirenAudio.play().catch(e => console.error('Siren blocked by browser:', e));
+        } else {
+            sirenAudio.pause();
+            sirenAudio.currentTime = 0;
+        }
+        if (sirenCheckbox) sirenCheckbox.checked = on;
+    }
+
+    if (sirenCheckbox) {
+        sirenCheckbox.addEventListener('change', () => setSiren(sirenCheckbox.checked));
+    }
+
+    // ==========================================================
+    // Voice trigger ("help" keyword) - needs tfjs-voice.js loaded in index.html
+    // ==========================================================
+    const voiceIndicator = document.getElementById('voice-indicator');
+    let voiceOn = false;
+
+    function setVoiceLabel(text, active = false) {
+        if (!voiceIndicator) return;
+        voiceIndicator.innerHTML = '<span class="icon">🎤</span> ' + text;
+        voiceIndicator.classList.toggle('active', active);
+    }
+
+    if (voiceIndicator) {
+        voiceIndicator.addEventListener('click', async () => {
+            if (typeof VoiceTrigger === 'undefined') {
+                setVoiceLabel('Voice scripts not loaded (check index.html)');
+                return;
+            }
+            if (voiceOn) {
+                VoiceTrigger.stop();
+                voiceOn = false;
+                setVoiceLabel('Voice Detection: Tap to enable');
+                return;
+            }
+            try {
+                await VoiceTrigger.start({
+                    onStatus: (t) => setVoiceLabel(t, VoiceTrigger.isListening()),
+                    onTrigger: () => {
+                        if (currentMode !== 'emergency') {
+                            triggerSource = 'voice';
+                            btnSOS.click(); // same flow as pressing the SOS button
+                        }
+                    }
+                });
+                voiceOn = true;
+            } catch (err) {
+                console.error('Voice trigger failed:', err);
+                setVoiceLabel('Voice unavailable: ' + err.message);
+            }
+        });
+    }
 
     // Helper: Geolocation retrieval with timeout & graceful fallback
     function getUserLocation(timeoutMs = 5000) {
@@ -147,6 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
         statusTime.innerText = triggerTimestamp;
         
         currentMode = 'emergency';
+        setSiren(true); // start the siren immediately, don't wait for GPS
+        const source = triggerSource;
+        triggerSource = 'button';
 
         if (statusLocation) {
             statusLocation.innerText = 'Acquiring GPS...';
@@ -166,8 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Dispatch trigger payload with location
         const triggerPayload = {
-            type: 'button',
-            trigger_type: 'button',
+            type: source,
+            trigger_type: source,
             location: currentLocation
         };
 
@@ -225,6 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentMode = 'daily'; // Reset mode
         chatInitialized = false; // Force re-fetch of welcome greeting next time
         currentLocation = null;
+        setSiren(false);
         
         // Reset status visuals
         statusTime.innerText = '--:--';
