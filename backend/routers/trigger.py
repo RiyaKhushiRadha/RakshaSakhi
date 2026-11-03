@@ -12,6 +12,8 @@ async def handle_trigger(request: TriggerRequest):
         "message": "Emergency sequence initiated",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
+    if request.user_name:
+        response["user_name"] = request.user_name
     if request.location:
         response["location"] = request.location
     return response

@@ -1,4 +1,5 @@
 import asyncio
+import html
 import logging
 from typing import Optional, Union, Any
 from fastapi import APIRouter, Depends
@@ -84,12 +85,17 @@ async def send_telegram_alert(
             "channel": "telegram"
         }
 
+    # 2. Extract and sanitize user_name
+    raw_name = payload.user_name if (payload and payload.user_name and payload.user_name.strip()) else "RakshaSakhi User"
+    escaped_name = html.escape(raw_name)
+
     # 3. Prepare message payload
     loc_str = format_location_string(payload.location if payload else None)
+    loc_display = loc_str if loc_str.startswith("📍 Location:") else f"📍 Location: {loc_str}"
     message_text = (
-        "🚨 *EMERGENCY SOS ALERT!*\n\n"
-        "RakshaSakhi user has triggered an SOS alert. Please check immediately or call them!\n\n"
-        f"{loc_str}"
+        "🚨 <b>EMERGENCY SOS ALERT!</b>\n\n"
+        f"<b>{escaped_name}</b> has triggered an SOS alert. Please check immediately or call them!\n\n"
+        f"{loc_display}"
     )
 
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -99,7 +105,7 @@ async def send_telegram_alert(
         body = {
             "chat_id": chat_id,
             "text": message_text,
-            "parse_mode": "Markdown"
+            "parse_mode": "HTML"
         }
         try:
             response = await client.post(url, json=body)

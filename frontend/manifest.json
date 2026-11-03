@@ -1,0 +1,31 @@
+{
+  "name": "RakshaSakhi | रक्षासखी - Emergency Women Safety & Companion",
+  "short_name": "RakshaSakhi",
+  "description": "Emergency Women Safety & Mental Health Companion PWA",
+  "start_url": ".",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a060d",
+  "theme_color": "#180d1e",
+  "icons": [
+    {
+      "src": "assets/hero_illustration.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/hero_illustration.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/hero_illustration.png",
+      "sizes": "540x540",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

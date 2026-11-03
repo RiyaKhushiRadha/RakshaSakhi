@@ -1,242 +1,1373 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#121212">
-    <title>RakshaSakhi</title>
-    <link rel="manifest" href="/manifest.json">
-    <link rel="stylesheet" href="/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#180d1e">
+    <title>RakshaSakhi | रक्षासखी</title>
+    <link rel="icon" type="image/png" href="assets/hero_illustration.png">
+    <link rel="apple-touch-icon" href="assets/hero_illustration.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
     <div id="app-container">
-        
-        <!-- Top App Bar -->
-        <header class="app-bar">
-            <div class="menu-icon" id="btn-menu" title="Emergency Contacts" role="button" tabindex="0">☰</div>
-            <h1 class="brand-title">RakshaSakhi</h1>
-            <div id="safety-badge" class="info-icon">ℹ</div>
-        </header>
 
-        <!-- SCREEN 1: Trigger Screen -->
-        <section id="screen-trigger" class="screen active">
-            <div id="voice-indicator" class="voice-guard-indicator">
-                <span class="icon">🎤</span> Voice Detection: Tap to enable
-            </div>
-            
-            <div class="sos-container">
-                <button id="sos-button" class="sos-btn">
-                    <span class="sos-text">SOS</span>
-                </button>
-                <p class="sos-instruction">Tap in emergency</p>
-            </div>
-
-            <!-- Floating Companion Widget (Mode A - Daily Wellness) -->
-            <div id="fab-daily-chat" class="floating-chat-btn">
-                <span class="fab-text">Hi 💬</span>
-            </div>
-        </section>
-
-        <!-- SCREEN 2: Chatbot Screen -->
-        <section id="screen-chat" class="screen hidden">
-            <div class="chat-header">
-                <button id="btn-back-chat" class="icon-btn">← Back</button>
-                <div class="siren-toggle">
-                    <label class="switch">
-                        <input type="checkbox" id="siren-checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                    <span>Sound Siren</span>
-                </div>
-            </div>
-            
-            <div class="chat-messages" id="chat-messages">
-                <!-- Chat messages appended dynamically -->
-            </div>
-            
-            <div class="quick-replies">
-                <button class="chip">I'm being followed</button>
-                <button class="chip">Send location now</button>
-                <button class="chip">Call police</button>
-            </div>
-            
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="Type a message...">
-                <button id="btn-send-chat" class="send-btn">Send</button>
-            </div>
-            
-            <button id="btn-view-status" class="nav-btn secondary-btn">View Alert Status</button>
-        </section>
-
-        <!-- SCREEN 3: Alert Status Screen -->
-        <section id="screen-status" class="screen hidden">
-            <h2>Emergency Status</h2>
-            
-            <div class="status-card">
-                <div class="status-row">
-                    <span class="label">Triggered At:</span>
-                    <span class="value" id="status-time">--:--</span>
-                </div>
-                <div class="status-row">
-                    <span class="label">Location:</span>
-                    <span class="value" id="status-location">Fetching... (Mocked)</span>
-                </div>
-                <div class="status-row">
-                    <span class="label">Telegram Alert:</span>
-                    <span class="value pending">Pending</span>
+        <!-- ========================================================== -->
+        <!-- PAGE 1: WELCOME / LANDING SCREEN                           -->
+        <!-- ========================================================== -->
+        <section id="screen-welcome" class="screen-view active" aria-label="Welcome Screen">
+            <div class="welcome-top">
+                <span class="welcome-tagline">Welcome to</span>
+                <div class="brand-hero">
+                    <span class="brand-shield-icon emblem-icon" aria-label="Protective Shield Emblem">
+                        <svg class="brand-shield-svg" width="34" height="34" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L4 5V11C4 16.55 7.42 21.74 12 23C16.58 21.74 20 16.55 20 11V5L12 2Z"
+                                fill="url(#brand-shield-grad)" stroke="#ff7a59" stroke-width="1.5"
+                                stroke-linejoin="round" />
+                            <path
+                                d="M12 7.5C10.6 6.3 8.3 6.8 8.3 8.9C8.3 11.2 12 14 12 14C12 14 15.7 11.2 15.7 8.9C15.7 6.8 13.4 6.3 12 7.5Z"
+                                fill="#ffffff" opacity="0.95" />
+                            <defs>
+                                <linearGradient id="brand-shield-grad" x1="4" y1="2" x2="20" y2="23"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#ff5e3a" />
+                                    <stop offset="1" stop-color="#7c4dff" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </span>
+                    <h1 class="brand-title-lg">RakshaSakhi</h1>
+                    <span class="brand-hindi-subtitle">रक्षासखी</span>
                 </div>
             </div>
 
-            <div class="action-buttons">
-                <a href="sms:112?body=Emergency!%20Need%20help." class="btn fallback-sms-btn">
-                    Fallback SMS
-                </a>
-                
-                <button id="btn-reset" class="btn reset-btn">
-                    I am safe now / Reset
+            <div class="welcome-illustration-wrap">
+                <img src="assets/hero_illustration.png" alt="RakshaSakhi Protective Shield Emblem"
+                    class="shield-graphic hero-master-emblem" width="170" height="170">
+            </div>
+
+            <div class="welcome-footer">
+                <p class="welcome-subtext">Your trusted companion for safety &amp; mental well-being.</p>
+                <button type="button" id="btn-welcome-start" class="btn-primary-pill pulse-ready">
+                    <div class="btn-pill-content">
+                        <span class="btn-pill-main">Get Started</span>
+                        <span class="btn-pill-sub">शुरू करें</span>
+                    </div>
+                    <span class="btn-pill-arrow">➔</span>
                 </button>
             </div>
         </section>
 
-        <!-- EMERGENCY CONTACTS MODAL / BOTTOM SHEET -->
-        <div id="contacts-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="contacts-modal-title">
-            <div class="modal-container">
-                <div class="modal-header">
-                    <div class="modal-title-wrap">
-                        <span class="modal-title-icon">👥</span>
-                        <h2 id="contacts-modal-title">Emergency Contacts</h2>
-                    </div>
-                    <button id="btn-close-contacts" class="modal-close-btn" aria-label="Close contacts modal">✕</button>
-                </div>
-                <p class="modal-subtitle">Trusted contacts will receive SOS alerts with your real-time GPS location via Telegram.</p>
+        <!-- ========================================================== -->
+        <!-- ONBOARDING WIZARD OVERLAY & CONTAINER                      -->
+        <!-- ========================================================== -->
+        <div id="onboarding-wizard" class="wizard-overlay hidden">
+            <div id="onboarding-wizard-container" class="wizard-wrapper">
 
-                <!-- Saved Contacts List Section -->
-                <div class="contacts-section">
-                    <div class="contacts-section-header">
-                        <span class="section-title">Saved Contacts</span>
-                        <span class="contacts-counter-badge" id="contacts-count">0</span>
+                <!-- PAGE 2: ONBOARDING STEP 1 - FULL NAME -->
+                <section id="wizard-step-1" class="wizard-step-screen hidden">
+                    <div id="onboard-step-1" class="step-anchor"></div>
+                    <div class="wizard-top-bar">
+                        <button type="button" id="btn-step1-back" class="btn-wizard-back"
+                            aria-label="Back to Welcome">←</button>
+                        <div class="wizard-progress-track" style="display:none;">
+                            <div class="wizard-progress-fill" style="width: 20%;"></div>
+                        </div>
+                        <div class="wizard-progress-header">
+                            <span class="wizard-step-text">Step 1 of 5</span>
+                            <div class="wizard-dash-indicators" aria-label="Step 1 of 5">
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill"></span>
+                                <span class="dash-pill"></span>
+                                <span class="dash-pill"></span>
+                                <span class="dash-pill"></span>
+                            </div>
+                        </div>
                     </div>
-                    <div id="contacts-list" class="contacts-list">
-                        <!-- Populated dynamically via JS -->
-                    </div>
-                </div>
 
-                <!-- Add Contact Form Section -->
-                <div class="add-contact-section">
-                    <div class="section-title">Add New Contact</div>
-                    <form id="form-add-contact" class="contact-form">
-                        <div class="form-group">
-                            <label for="contact-name">Full Name <span class="required">*</span></label>
-                            <input type="text" id="contact-name" placeholder="e.g. Papa, Priya Sharma" required>
+                    <div class="wizard-brand-badge">
+                        <svg class="brand-mini-shield" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L4 5V11C4 16.55 7.42 21.74 12 23C16.58 21.74 20 16.55 20 11V5L12 2Z"
+                                fill="url(#step1-shield-grad)" stroke="#ff7a59" stroke-width="1.5"
+                                stroke-linejoin="round" />
+                            <path
+                                d="M12 7.5C10.6 6.3 8.3 6.8 8.3 8.9C8.3 11.2 12 14 12 14C12 14 15.7 11.2 15.7 8.9C15.7 6.8 13.4 6.3 12 7.5Z"
+                                fill="#ffffff" opacity="0.95" />
+                            <defs>
+                                <linearGradient id="step1-shield-grad" x1="4" y1="2" x2="20" y2="23"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#ff5e3a" />
+                                    <stop offset="1" stop-color="#7c4dff" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="brand-mini-text">
+                            <span class="brand-mini-title">RakshaSakhi</span>
+                            <span class="brand-mini-hindi">रक्षासखी</span>
                         </div>
-                        <div class="form-group">
-                            <label for="contact-phone">Phone Number <span class="required">*</span></label>
-                            <input type="tel" id="contact-phone" placeholder="e.g. +91 98765 43210" required>
+                    </div>
+
+                    <div class="wizard-content-tile">
+                        <h2 class="wizard-title">What should we call you?<br><span class="title-hindi">आपका नाम क्या
+                                है?</span></h2>
+                        <p class="wizard-desc">Enter your name so we and your contacts can identify you in an emergency.
+                        </p>
+
+                        <div class="form-control-wrap">
+                            <span class="field-icon">👤</span>
+                            <input type="text" id="onboard-name" class="styled-input"
+                                placeholder="e.g. Priya Sharma (प्रिया शर्मा)" maxlength="50" autocomplete="name">
                         </div>
-                        <div class="form-group">
-                            <label for="contact-telegram">Telegram Chat ID <span class="required">*</span></label>
-                            <input type="text" id="contact-telegram" placeholder="e.g. 5002668099" required>
-                            <button type="button" id="btn-open-id-help" class="btn-id-help-badge" aria-haspopup="dialog">
-                                ❓ How to find Telegram ID? (Tap for instructions)
-                            </button>
-                        </div>
-                        <div class="form-group">
-                            <label for="contact-relationship">Relationship</label>
-                            <select id="contact-relationship">
-                                <option value="Parent">Parent</option>
-                                <option value="Sibling">Sibling</option>
-                                <option value="Spouse/Partner">Spouse / Partner</option>
-                                <option value="Friend" selected>Friend</option>
-                                <option value="Colleague">Colleague</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <button type="submit" id="btn-save-contact" class="btn-save-contact">
-                            <span>+ Add Emergency Contact</span>
+                        <div id="name-error-msg" class="field-error-text hidden"></div>
+                    </div>
+
+                    <div class="wizard-bottom-action">
+                        <button type="button" id="btn-step1-next" class="btn-primary-pill" disabled>
+                            <div class="btn-pill-content" id="btn-onboard-next-1">
+                                <span class="btn-pill-main">Next</span>
+                                <span class="btn-pill-sub">आगे बढ़ें</span>
+                            </div>
+                            <span class="btn-pill-arrow">➔</span>
                         </button>
-                    </form>
+                    </div>
+                </section>
+
+                <!-- PAGE 3: ONBOARDING STEP 2 - DATE OF BIRTH -->
+                <section id="wizard-step-2" class="wizard-step-screen hidden">
+                    <div id="onboard-step-2" class="step-anchor"></div>
+                    <div class="wizard-top-bar">
+                        <button type="button" id="btn-step2-back" class="btn-wizard-back" aria-label="Back to Step 1">
+                            <span id="btn-onboard-back-2">←</span>
+                        </button>
+                        <div class="wizard-progress-track" style="display:none;">
+                            <div class="wizard-progress-fill" style="width: 40%;"></div>
+                        </div>
+                        <div class="wizard-progress-header">
+                            <span class="wizard-step-text">Step 2 of 5</span>
+                            <div class="wizard-dash-indicators" aria-label="Step 2 of 5">
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill"></span>
+                                <span class="dash-pill"></span>
+                                <span class="dash-pill"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-brand-badge">
+                        <svg class="brand-mini-shield" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L4 5V11C4 16.55 7.42 21.74 12 23C16.58 21.74 20 16.55 20 11V5L12 2Z"
+                                fill="url(#step2-shield-grad)" stroke="#ff7a59" stroke-width="1.5"
+                                stroke-linejoin="round" />
+                            <path
+                                d="M12 7.5C10.6 6.3 8.3 6.8 8.3 8.9C8.3 11.2 12 14 12 14C12 14 15.7 11.2 15.7 8.9C15.7 6.8 13.4 6.3 12 7.5Z"
+                                fill="#ffffff" opacity="0.95" />
+                            <defs>
+                                <linearGradient id="step2-shield-grad" x1="4" y1="2" x2="20" y2="23"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#ff5e3a" />
+                                    <stop offset="1" stop-color="#7c4dff" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="brand-mini-text">
+                            <span class="brand-mini-title">RakshaSakhi</span>
+                            <span class="brand-mini-hindi">रक्षासखी</span>
+                        </div>
+                    </div>
+
+                    <div class="wizard-content-tile">
+                        <h2 class="wizard-title">What is your date of birth?<br><span class="title-hindi">आपकी जन्म तिथि
+                                क्या है?</span></h2>
+                        <p class="wizard-desc">This helps in emergencies and personalizes your experience.</p>
+
+                        <div class="form-control-wrap">
+                            <span class="field-icon">📅</span>
+                            <input type="date" id="onboard-dob" class="styled-input date-input"
+                                placeholder="DD / MM / YYYY (दिन / महीना / साल)">
+                        </div>
+                        <div id="dob-error-msg" class="field-error-text hidden"></div>
+                    </div>
+
+                    <div class="wizard-bottom-action">
+                        <button type="button" id="btn-step2-next" class="btn-primary-pill" disabled>
+                            <div class="btn-pill-content" id="btn-onboard-next-2">
+                                <span class="btn-pill-main">Next</span>
+                                <span class="btn-pill-sub">आगे बढ़ें</span>
+                            </div>
+                            <span class="btn-pill-arrow">➔</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- PAGE 4: ONBOARDING STEP 3 - BLOOD GROUP -->
+                <section id="wizard-step-3" class="wizard-step-screen hidden">
+                    <div id="onboard-step-3" class="step-anchor"></div>
+                    <div class="wizard-top-bar">
+                        <button type="button" id="btn-step3-back" class="btn-wizard-back" aria-label="Back to Step 2">
+                            <span id="btn-onboard-back-3">←</span>
+                        </button>
+                        <div class="wizard-progress-track" style="display:none;">
+                            <div class="wizard-progress-fill" style="width: 60%;"></div>
+                        </div>
+                        <div class="wizard-progress-header">
+                            <span class="wizard-step-text">Step 3 of 5</span>
+                            <div class="wizard-dash-indicators" aria-label="Step 3 of 5">
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill"></span>
+                                <span class="dash-pill"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-brand-badge">
+                        <svg class="brand-mini-shield" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L4 5V11C4 16.55 7.42 21.74 12 23C16.58 21.74 20 16.55 20 11V5L12 2Z"
+                                fill="url(#step3-shield-grad)" stroke="#ff7a59" stroke-width="1.5"
+                                stroke-linejoin="round" />
+                            <path
+                                d="M12 7.5C10.6 6.3 8.3 6.8 8.3 8.9C8.3 11.2 12 14 12 14C12 14 15.7 11.2 15.7 8.9C15.7 6.8 13.4 6.3 12 7.5Z"
+                                fill="#ffffff" opacity="0.95" />
+                            <defs>
+                                <linearGradient id="step3-shield-grad" x1="4" y1="2" x2="20" y2="23"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#ff5e3a" />
+                                    <stop offset="1" stop-color="#7c4dff" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="brand-mini-text">
+                            <span class="brand-mini-title">RakshaSakhi</span>
+                            <span class="brand-mini-hindi">रक्षासखी</span>
+                        </div>
+                    </div>
+
+                    <div class="wizard-content-tile">
+                        <h2 class="wizard-title">What is your blood group?<br><span class="title-hindi">आपकी ब्लड ग्रुप
+                                क्या है?</span></h2>
+                        <p class="wizard-desc">This helps first responders in case of a medical emergency.<br><span
+                                class="desc-hindi">यह मेडिकल इमरजेंसी के समय बहुत काम आता है।</span></p>
+
+                        <div class="blood-chips-grid">
+                            <button type="button" class="blood-chip" data-value="A+">A+</button>
+                            <button type="button" class="blood-chip" data-value="A-">A-</button>
+                            <button type="button" class="blood-chip" data-value="B+">B+</button>
+                            <button type="button" class="blood-chip" data-value="B-">B-</button>
+                            <button type="button" class="blood-chip" data-value="AB+">AB+</button>
+                            <button type="button" class="blood-chip" data-value="AB-">AB-</button>
+                            <button type="button" class="blood-chip" data-value="O+">O+</button>
+                            <button type="button" class="blood-chip" data-value="O-">O-</button>
+                        </div>
+
+                        <button type="button" class="blood-chip-unknown" id="btn-blood-unknown" data-value="Don't know">
+                            Don't know / पता नहीं
+                        </button>
+                        <input type="hidden" id="onboard-blood-group-val" value="">
+                        <select id="onboard-blood-group" style="display:none;" aria-hidden="true">
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                        <div id="blood-error-msg" class="field-error-text hidden"></div>
+                    </div>
+
+                    <div class="wizard-bottom-action">
+                        <button type="button" id="btn-step3-next" class="btn-primary-pill" disabled>
+                            <div class="btn-pill-content" id="btn-onboard-next-3">
+                                <span class="btn-pill-main">Next</span>
+                                <span class="btn-pill-sub">आगे बढ़ें</span>
+                            </div>
+                            <span class="btn-pill-arrow">➔</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- PAGE 5: ONBOARDING STEP 4 - LOCAL AREA / CITY -->
+                <section id="wizard-step-4" class="wizard-step-screen hidden">
+                    <div id="onboard-step-4" class="step-anchor"></div>
+                    <div class="wizard-top-bar">
+                        <button type="button" id="btn-step4-back" class="btn-wizard-back" aria-label="Back to Step 3">
+                            <span id="btn-onboard-back-4">←</span>
+                        </button>
+                        <div class="wizard-progress-track" style="display:none;">
+                            <div class="wizard-progress-fill" style="width: 80%;"></div>
+                        </div>
+                        <div class="wizard-progress-header">
+                            <span class="wizard-step-text">Step 4 of 5</span>
+                            <div class="wizard-dash-indicators" aria-label="Step 4 of 5">
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-brand-badge">
+                        <svg class="brand-mini-shield" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L4 5V11C4 16.55 7.42 21.74 12 23C16.58 21.74 20 16.55 20 11V5L12 2Z"
+                                fill="url(#step4-shield-grad)" stroke="#ff7a59" stroke-width="1.5"
+                                stroke-linejoin="round" />
+                            <path
+                                d="M12 7.5C10.6 6.3 8.3 6.8 8.3 8.9C8.3 11.2 12 14 12 14C12 14 15.7 11.2 15.7 8.9C15.7 6.8 13.4 6.3 12 7.5Z"
+                                fill="#ffffff" opacity="0.95" />
+                            <defs>
+                                <linearGradient id="step4-shield-grad" x1="4" y1="2" x2="20" y2="23"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#ff5e3a" />
+                                    <stop offset="1" stop-color="#7c4dff" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="brand-mini-text">
+                            <span class="brand-mini-title">RakshaSakhi</span>
+                            <span class="brand-mini-hindi">रक्षासखी</span>
+                        </div>
+                    </div>
+
+                    <div class="wizard-content-tile">
+                        <h2 class="wizard-title">What is your local area?<br><span class="title-hindi">आपका स्थानीय
+                                इलाका कौन सा है?</span></h2>
+                        <p class="wizard-desc">Helps us tailor safe routes and emergency guidance based on whether
+                            you're in your home area or unfamiliar surroundings.<br><span class="desc-hindi">यह हमें
+                                आपके इलाके के अनुसार सही सुरक्षा सुझाव और आपातकालीन मार्गदर्शन देने में मदद करता
+                                है।</span></p>
+
+                        <div class="form-control-wrap">
+                            <span class="field-icon">📍</span>
+                            <input type="text" id="onboard-area" class="styled-input"
+                                placeholder="Enter Area, City or Pincode / इलाका, शहर या पिनकोड दर्ज करें">
+                        </div>
+
+                        <button type="button" id="btn-step4-gps" class="btn-location-fetch">
+                            <div class="btn-fetch-content">
+                                <span class="btn-fetch-main">📍 Use Current Location</span>
+                                <span class="btn-fetch-sub">वर्तमान स्थान का उपयोग करें</span>
+                            </div>
+                        </button>
+                        <div id="area-hint-msg" class="field-hint-text hidden"></div>
+                        <div id="area-error-msg" class="field-error-text hidden"></div>
+                    </div>
+
+                    <div class="wizard-bottom-action">
+                        <button type="button" id="btn-step4-next" class="btn-primary-pill" disabled>
+                            <div class="btn-pill-content" id="btn-onboard-next-4">
+                                <span class="btn-pill-main">Next</span>
+                                <span class="btn-pill-sub">आगे बढ़ें</span>
+                            </div>
+                            <span class="btn-pill-arrow">➔</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- PAGE 6: ONBOARDING STEP 5 - MANDATORY EMERGENCY CONTACT -->
+                <section id="wizard-step-5" class="wizard-step-screen hidden">
+                    <div id="onboard-step-5" class="step-anchor"></div>
+                    <div class="wizard-top-bar">
+                        <button type="button" id="btn-step5-back" class="btn-wizard-back" aria-label="Back to Step 4">
+                            <span id="btn-onboard-back-5">←</span>
+                        </button>
+                        <div class="wizard-progress-track" style="display:none;">
+                            <div class="wizard-progress-fill" style="width: 100%;"></div>
+                        </div>
+                        <div class="wizard-progress-header" id="step5-progress-header">
+                            <span class="wizard-step-text">Step 5 of 5</span>
+                            <div class="wizard-dash-indicators" aria-label="Step 5 of 5">
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill active"></span>
+                                <span class="dash-pill active"></span>
+                            </div>
+                        </div>
+                        <button type="button" id="btn-contact-loop-skip" class="btn-loop-skip-pill hidden"
+                            aria-label="Skip adding another contact">Skip / स्किप करें</button>
+                    </div>
+
+                    <div class="wizard-brand-badge">
+                        <svg class="brand-mini-shield" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L4 5V11C4 16.55 7.42 21.74 12 23C16.58 21.74 20 16.55 20 11V5L12 2Z"
+                                fill="url(#step5-shield-grad)" stroke="#ff7a59" stroke-width="1.5"
+                                stroke-linejoin="round" />
+                            <path
+                                d="M12 7.5C10.6 6.3 8.3 6.8 8.3 8.9C8.3 11.2 12 14 12 14C12 14 15.7 11.2 15.7 8.9C15.7 6.8 13.4 6.3 12 7.5Z"
+                                fill="#ffffff" opacity="0.95" />
+                            <defs>
+                                <linearGradient id="step5-shield-grad" x1="4" y1="2" x2="20" y2="23"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#ff5e3a" />
+                                    <stop offset="1" stop-color="#7c4dff" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="brand-mini-text">
+                            <span class="brand-mini-title">RakshaSakhi</span>
+                            <span class="brand-mini-hindi">रक्षासखी</span>
+                        </div>
+                    </div>
+
+                    <div class="wizard-content-tile contact-card-tile">
+                        <div class="wizard-icon-badge">👥</div>
+                        <h2 class="wizard-title">ADD NEW CONTACT / आपातकालीन संपर्क जोड़ें<br><span
+                                class="title-hindi">Add Emergency Contact</span></h2>
+                        <p class="wizard-desc">Whom should we notify in an emergency?<br><span
+                                class="desc-hindi">आपातकाल में हम किसे सूचित करें?</span></p>
+
+                        <div class="contact-fields-wrap">
+                            <div class="form-row-group">
+                                <label for="contact-name" class="styled-label">Full Name * / पूरा नाम</label>
+                                <div class="form-control-wrap">
+                                    <span class="field-icon">👤</span>
+                                    <input type="text" id="contact-name" class="styled-input"
+                                        placeholder="e.g. Papa, Priya Sharma" required>
+                                    <input type="hidden" id="onboard-contact-name" aria-hidden="true">
+                                </div>
+                                <div id="error-contact-name" class="field-error-msg"></div>
+                            </div>
+
+                            <div class="form-row-group">
+                                <label for="contact-phone" class="styled-label">Phone Number * / फ़ोन नंबर</label>
+                                <div class="form-control-wrap">
+                                    <span class="field-icon">📞</span>
+                                    <input type="tel" id="contact-phone" class="styled-input"
+                                        placeholder="e.g. +91 98XXX XXXXX" required>
+                                    <input type="hidden" id="onboard-contact-phone" aria-hidden="true">
+                                </div>
+                                <div id="error-contact-phone" class="field-error-msg"></div>
+                            </div>
+
+                            <div class="form-row-group">
+                                <label for="contact-telegram" class="styled-label">Telegram Chat ID * / टेलीग्राम चैट
+                                    आईडी</label>
+                                <div class="form-control-wrap">
+                                    <span class="field-icon">💬</span>
+                                    <input type="text" id="contact-telegram" class="styled-input"
+                                        placeholder="e.g. 1234567890" required>
+                                    <input type="hidden" id="onboard-contact-telegram" aria-hidden="true">
+                                </div>
+                                <div id="error-contact-telegram" class="field-error-msg"></div>
+                                <a id="btn-open-telegram-help" class="telegram-helper-link btn-id-help-badge"
+                                    role="button" tabindex="0">
+                                    <span id="link-find-telegram">❓ How to find Telegram ID? (Tap for instructions) /
+                                        टेलीग्राम आईडी कैसे खोजें?</span>
+                                </a>
+                            </div>
+
+                            <div class="form-row-group">
+                                <label for="contact-relationship" class="styled-label">Relationship / संबंध</label>
+                                <div class="form-control-wrap">
+                                    <span class="field-icon">🤝</span>
+                                    <select id="contact-relationship" class="styled-select">
+                                        <option value="Friend" selected>Friend / दोस्त</option>
+                                        <option value="Family">Family / परिवार</option>
+                                        <option value="Parent">Parent / माता-पिता</option>
+                                        <option value="Sibling">Sibling / भाई-बहन</option>
+                                        <option value="Guardian">Guardian / अभिभावक</option>
+                                        <option value="Other">Other / अन्य</option>
+                                    </select>
+                                    <select id="onboard-contact-relationship" style="display:none;" aria-hidden="true">
+                                        <option value="Friend">Friend</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-bottom-action">
+                        <button type="button" id="btn-add-emergency-contact" class="btn-primary-pill" disabled>
+                            <span id="btn-onboard-add-contact">+ Add Emergency Contact / + आपातकालीन संपर्क
+                                जोड़ें</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ========================================================== -->
+        <!-- PAGE 7: POPUP MODAL - TELEGRAM ID HELPER                   -->
+        <!-- ========================================================== -->
+        <div id="modal-telegram-guide" class="modal-overlay hidden" role="dialog" aria-modal="true"
+            aria-labelledby="tg-guide-title">
+            <div id="id-help-modal" class="glass-modal-card">
+                <div class="modal-header-row">
+                    <h3 id="tg-guide-title" class="modal-heading">💡 How to get Telegram Chat ID<br><span
+                            class="modal-subheading-hindi">टेलीग्राम चैट आईडी कैसे प्राप्त करें?</span></h3>
+                    <button type="button" id="btn-close-telegram-guide" class="btn-modal-close"
+                        aria-label="Close Guide">✕</button>
+                </div>
+
+                <div class="guide-steps-list">
+                    <div class="guide-step-card">
+                        <div class="step-badge">1</div>
+                        <div class="step-details">
+                            <strong>Open @userinfobot / @userinfobot खोलें</strong>
+                            <p>Open @userinfobot or share request with contact</p>
+                        </div>
+                    </div>
+
+                    <div class="guide-step-card">
+                        <div class="step-badge">2</div>
+                        <div class="step-details">
+                            <strong>Send /start / /start भेजें</strong>
+                            <p>The bot will reply with your numeric ID (e.g. 1234567890)</p>
+                        </div>
+                    </div>
+
+                    <div class="guide-step-card">
+                        <div class="step-badge">3</div>
+                        <div class="step-details">
+                            <strong>Copy &amp; Paste in Form / कॉपी और फॉर्म में पेस्ट करें</strong>
+                            <p>Paste the numeric ID into the Telegram Chat ID field above</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="guide-direct-actions">
+                    <button type="button" id="btn-tg-open-bot" class="btn-action-blue">
+                        <span>🔍 Open @userinfobot Directly / डायरेक्ट @userinfobot खोलें</span>
+                    </button>
+                    <a id="btn-tg-req-whatsapp"
+                        href="https://wa.me/?text=Hey!%20Can%20you%20open%20https://t.me/userinfobot%20and%20send%20me%20your%20numeric%20Telegram%20ID?%20I%20am%20adding%20you%20as%20my%20emergency%20contact%20on%20RakshaSakhi."
+                        target="_blank" rel="noopener noreferrer" class="btn-action-green">
+                        <span>💬 Request ID from Contact via WhatsApp / व्हाट्सएप के ज़रिए कांटेक्ट से आईडी
+                            मांगें</span>
+                    </a>
+                </div>
+
+                <div class="modal-footer-link-wrap">
+                    <button type="button" id="btn-tg-dismiss" class="link-dismiss">
+                        Got it / Close | समझ गए / बंद करें
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- POST-SAVE SHAREABLE MODAL / POPUP -->
-        <div id="contact-success-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
-            <div class="success-popup-card">
-                <div class="success-badge-icon">✅</div>
-                <h3 id="success-modal-title" class="success-popup-title">Emergency Contact Saved!</h3>
-                <p id="success-contact-name" class="success-contact-subtitle"></p>
-                
-                <div class="bot-start-alert-box">
-                    <span class="bot-start-alert-icon">⚠️</span>
-                    <p class="bot-start-alert-text">
-                        <strong>Important:</strong> For this contact to receive your SOS alerts, they must start our bot once.
-                    </p>
+        <!-- ========================================================== -->
+        <!-- PAGE 8: POPUP MODAL - CONTACT ADDED LOOP                   -->
+        <!-- ========================================================== -->
+        <div id="modal-contact-success" class="modal-overlay hidden" role="dialog" aria-modal="true"
+            aria-labelledby="loop-success-title">
+            <div id="contact-success-modal" class="glass-modal-card text-center">
+                <div id="onboard-step-6" class="step-anchor"></div>
+                <div class="loop-success-icon-wrap">
+                    <div class="loop-glow-icon">👥💖+</div>
+                </div>
+                <h3 id="loop-success-title" class="loop-title">Contact Added! 🎉<br><span class="title-hindi">Contact
+                        Added Successfully! / संपर्क जोड़ा गया! 🎉</span></h3>
+                <p class="loop-subtitle">Would you like to add another emergency contact?<br><span
+                        class="desc-hindi">क्या आप एक और आपातकालीन संपर्क जोड़ना चाहते हैं?</span></p>
+                <p class="loop-subtext">You can add multiple contacts for better safety.<br><span
+                        class="desc-hindi">बेहतर सुरक्षा के लिए आप कई संपर्क जोड़ सकते हैं।</span></p>
+
+                <div class="loop-actions-vertical">
+                    <button type="button" id="btn-loop-add-more" class="btn-secondary-pill">
+                        <span id="btn-onboard-add-more">+ Add Another Contact / + एक और संपर्क जोड़ें</span>
+                    </button>
+                    <button type="button" id="btn-loop-finish" class="btn-primary-pill">
+                        <span id="btn-onboard-finish">No, I'm Done / नहीं, हो गया (आगे बढ़ें) ➔</span>
+                    </button>
                 </div>
 
-                <div class="success-popup-actions">
-                    <a id="btn-share-whatsapp" href="#" target="_blank" rel="noopener noreferrer" class="btn-popup-action btn-whatsapp">
-                        <span class="btn-popup-icon">💬</span> Share Invite via WhatsApp
+                <!-- Hidden test hooks for legacy backward compatibility -->
+                <a id="btn-share-whatsapp" href="#" target="_blank" rel="noopener noreferrer" style="display:none;"
+                    aria-hidden="true"></a>
+                <a id="btn-share-telegram" href="#" target="_blank" rel="noopener noreferrer" style="display:none;"
+                    aria-hidden="true"></a>
+                <button type="button" id="btn-copy-bot-link" style="display:none;" aria-hidden="true"></button>
+                <button type="button" id="btn-send-test-alert" style="display:none;" aria-hidden="true"></button>
+                <button type="button" id="btn-loop-cancel" style="display:none;" aria-hidden="true"></button>
+                <button type="button" id="btn-loop-skip" style="display:none;" aria-hidden="true"></button>
+                <button type="button" id="btn-make-id-active" style="display:none;" aria-hidden="true"></button>
+            </div>
+        </div>
+
+        <!-- ========================================================== -->
+        <!-- POPUP MODAL: LINK TELEGRAM ACTIVATION (link_telegram_page.png) -->
+        <!-- ========================================================== -->
+        <div id="modal-telegram-activation" class="modal-overlay hidden" role="dialog" aria-modal="true"
+            aria-labelledby="tg-activation-title">
+            <div id="telegram-activation-card" class="glass-modal-card text-center">
+                <div class="modal-header-row justify-end">
+                    <button type="button" id="btn-close-telegram-activation" class="btn-modal-close"
+                        aria-label="Close">✕</button>
+                </div>
+                <div class="activation-icon-wrap">
+                    <div class="activation-telegram-logo">✈️</div>
+                </div>
+                <h3 id="tg-activation-title" class="loop-title">Activate Your ID via Telegram<br><span
+                        class="title-hindi">टेलीग्राम के माध्यम से अपनी आईडी सक्रिय करें</span></h3>
+                <p class="loop-subtitle">Start the alert bot to receive instant SOS notifications and live GPS
+                    alerts.<br><span class="desc-hindi">लाइव जीपीएस अलर्ट और आपातकालीन सूचनाएं प्राप्त करने के लिए बॉट
+                        शुरू करें।</span></p>
+
+                <div class="guide-steps-list text-left my-4">
+                    <div class="guide-step-card">
+                        <div class="step-badge">1</div>
+                        <div class="step-details">
+                            <strong>Open Alert Bot / अलर्ट बॉट खोलें:</strong>
+                            <p>Connect with <a href="https://t.me/RakshaSakhi_Alert_Bot" target="_blank"
+                                    rel="noopener noreferrer" class="link-telegram-handle">@RakshaSakhi_Alert_Bot</a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="guide-step-card">
+                        <div class="step-badge">2</div>
+                        <div class="step-details">
+                            <strong>Start the Bot &amp; Link / बॉट शुरू और लिंक करें:</strong>
+                            <p>Tap <strong>[Start]</strong> or send <code>/start</code> in Telegram to activate alerts
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loop-actions-vertical">
+                    <a id="btn-tg-activate-bot" href="https://t.me/RakshaSakhi_Alert_Bot" target="_blank"
+                        rel="noopener noreferrer" class="btn-primary-pill w-100 text-center"
+                        style="text-decoration:none; display:inline-block;">
+                        <span>Open Telegram &amp; Activate / टेलीग्राम खोलें और सक्रिय करें</span>
                     </a>
-                    <a id="btn-share-telegram" href="#" target="_blank" rel="noopener noreferrer" class="btn-popup-action btn-telegram">
-                        <span class="btn-popup-icon">✈️</span> Share Invite via Telegram
-                    </a>
-                    <button id="btn-copy-bot-link" class="btn-popup-action btn-copy-bot" type="button">
-                        <span class="btn-popup-icon">📋</span> <span id="copy-bot-label">Copy Bot Link</span>
-                    </button>
-                    <button id="btn-close-success" class="btn-popup-action btn-dismiss-popup" type="button">
-                        Done / Close
+                    <button type="button" id="btn-tg-activation-skip" class="btn-secondary-pill w-100">
+                        <span>Skip for Now / अभी छोड़ें</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- INTERACTIVE TELEGRAM ID HELP MODAL -->
-        <div id="id-help-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="id-help-title">
-            <div class="help-popup-card">
-                <div class="help-header">
-                    <div class="help-title-wrap">
-                        <span class="help-header-icon">💡</span>
-                        <h3 id="id-help-title" class="help-popup-title">How to get Telegram Chat ID</h3>
+        <!-- ========================================================== -->
+        <!-- PAGE 9: MAIN DASHBOARD SCREEN                              -->
+        <!-- ========================================================== -->
+        <section id="screen-dashboard" class="screen-view hidden" aria-label="Main Dashboard">
+            <!-- Top Quick Action Row (3 Quick Buttons) -->
+            <div class="dash-quick-row">
+                <button type="button" id="btn-header-contacts" class="dash-quick-card-contacts btn-menu"
+                    aria-label="Emergency Contacts">
+                    <div class="quick-card-icon-wrap">
+                        <span id="btn-menu" class="quick-card-circle-icon btn-menu">📞👥</span>
                     </div>
-                    <button type="button" id="btn-close-id-help" class="modal-close-btn" aria-label="Close instructions">✕</button>
+                    <div class="quick-card-text">
+                        <span class="quick-card-title">Emergency Contacts</span>
+                        <span class="quick-card-subtitle">Manage Saved (<span id="badge-contacts-count">0</span>)</span>
+                    </div>
+                </button>
+
+                <button type="button" id="btn-header-profile" class="dash-quick-card-square btn-profile"
+                    title="Personal Info" aria-label="Personal Info">
+                    <div class="square-icon-box">
+                        <span id="btn-profile" class="square-icon btn-profile">👤</span>
+                    </div>
+                    <span class="square-label">Personal<br>Info</span>
+                </button>
+
+                <button type="button" id="btn-header-info" class="dash-quick-card-square btn-info" title="App Info"
+                    aria-label="App Info">
+                    <div class="square-icon-box">
+                        <span id="btn-info" class="square-icon btn-info">ℹ️</span>
+                    </div>
+                    <span class="square-label">App<br>Info</span>
+                </button>
+            </div>
+
+            <!-- Brand Hero Centered Below Top Quick Buttons -->
+            <div class="dash-brand-hero">
+                <div class="dash-shield-emblem">🛡️</div>
+                <h2 class="dash-title">RakshaSakhi</h2>
+                <span class="dash-hindi">रक्षासखी</span>
+            </div>
+
+            <!-- Main Body: Hero SOS Trigger -->
+            <div class="dashboard-hero-container">
+                <div class="sos-concentric-wrapper">
+                    <!-- Concentric Glowing Pulse Rings -->
+                    <div class="sos-ring ring-3"></div>
+                    <div class="sos-ring ring-2"></div>
+                    <div class="sos-ring ring-1"></div>
+
+                    <button type="button" id="btn-sos" class="sos-core-button" aria-label="SOS Trigger">
+                        <svg class="sos-hold-progress-svg" viewBox="0 0 176 176" aria-hidden="true">
+                            <circle class="sos-hold-circle-bg" cx="88" cy="88" r="82"></circle>
+                            <circle class="sos-hold-circle-bar" cx="88" cy="88" r="82"></circle>
+                        </svg>
+                        <span class="sos-main-text">SOS</span>
+                        <span class="sos-sub-instruction">PRESS &amp; HOLD TO TRIGGER</span>
+                    </button>
                 </div>
-                
-                <div class="help-steps-list">
-                    <div class="help-step-item">
-                        <div class="step-num-badge">1</div>
-                        <div class="step-content">
-                            <strong>Open @userinfobot</strong>
-                            <p>Open @userinfobot (or share the request with your contact).</p>
+
+                <p class="sos-caption-text">Alerts contacts &amp; shares your GPS location<br><span
+                        class="caption-hindi">संपर्कों को सूचित करता है और लाइव लोकेशन भेजता है</span></p>
+
+                <!-- GPS Status Pill Positioned Below SOS & Caption -->
+                <div class="gps-status-row">
+                    <span id="badge-gps" class="status-pill-gps active">
+                        <span class="gps-dot"></span> ✈ GPS Active
+                    </span>
+                </div>
+            </div>
+
+            <!-- Bottom Mental Health Chatbot Card -->
+            <div class="dashboard-bottom-card-wrap">
+                <div id="card-chatbot" class="glass-chatbot-card" role="button" tabindex="0">
+                    <div class="chatbot-avatar-wrap">
+                        <span class="chatbot-avatar-icon">💬</span>
+                        <span class="online-indicator"></span>
+                    </div>
+                    <div class="chatbot-card-meta">
+                        <h4 class="chatbot-title">Sakhi - Mental Health Chatbot</h4>
+                        <p class="chatbot-subtitle">Your daily companion. Chat, vent, or talk anytime.<br><span
+                                class="hindi-meta">सखी - हमेशा आपके साथ बातचीत और सहायता के लिए उपलब्ध।</span></p>
+                    </div>
+                    <span class="card-arrow-icon">➔</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- PRIMARY SCREEN: EMERGENCY CONTACTS VIEW                    -->
+        <!-- ========================================================== -->
+        <section id="screen-contacts" class="screen-view hidden" aria-label="Emergency Contacts">
+            <div class="screen-top-bar">
+                <button type="button" id="btn-contacts-back" class="btn-back-square"
+                    aria-label="Back to Dashboard">←</button>
+                <div class="brand-mini-center">
+                    <span class="brand-mini-shield">🛡️</span>
+                    <span class="brand-mini-title">RakshaSakhi</span>
+                    <span class="brand-mini-hindi">रक्षासखी</span>
+                </div>
+                <div style="width: 38px;"></div>
+            </div>
+
+            <div class="screen-page-header">
+                <h2 class="page-title-orange">Emergency Contacts<br><span class="title-hindi">आपातकालीन संपर्क</span>
+                </h2>
+                <p class="page-desc-muted">Who will be notified in an emergency | जिन्हें आपातकालीन स्थिति में सूचित
+                    किया जाएगा</p>
+            </div>
+
+            <div id="full-contacts-list" class="full-contacts-scroll-list">
+                <!-- Dynamically rendered contact cards with silhouette, badges, edit pencil and delete trash -->
+            </div>
+
+            <div class="screen-bottom-action">
+                <button type="button" id="btn-contacts-add-new" class="btn-primary-pill pulse-ready">
+                    <span>+ Add New Contact<br><span class="btn-subtext-hindi">+ नया संपर्क जोड़ें</span></span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- PRIMARY SCREEN: PERSONAL DETAILS VIEW                      -->
+        <!-- ========================================================== -->
+        <section id="screen-profile" class="screen-view hidden" aria-label="Personal Details">
+            <div class="screen-top-bar">
+                <button type="button" id="btn-profile-back" class="btn-back-square"
+                    aria-label="Back to Dashboard">←</button>
+                <div class="brand-mini-center">
+                    <span class="brand-mini-shield">🛡️</span>
+                    <span class="brand-mini-title">RakshaSakhi</span>
+                    <span class="brand-mini-hindi">रक्षासखी</span>
+                </div>
+                <div style="width: 38px;"></div>
+            </div>
+
+            <div class="screen-page-header">
+                <h2 class="page-title-orange">Personal Details<br><span class="title-hindi">व्यक्तिगत विवरण</span></h2>
+                <p class="page-desc-muted">Your profile information used during emergencies / आपातकाल के समय उपयोग होने
+                    वाली आपकी जानकारी</p>
+            </div>
+
+            <div class="profile-avatar-center-wrap">
+                <div class="profile-photo-circle">
+                    <div class="profile-photo-img-wrap">
+                        <span class="avatar-woman-silhouette" aria-label="Priya Sharma Avatar">👩🏻</span>
+                    </div>
+                    <button type="button" id="btn-change-avatar" class="avatar-camera-badge"
+                        aria-label="Change photo">📷</button>
+                </div>
+                <h3 id="display-profile-name" class="profile-name-heading">Priya Sharma (प्रिया शर्मा)</h3>
+            </div>
+
+            <div class="profile-field-cards-container">
+                <!-- Field 1: Full Name -->
+                <div class="field-card-item" data-field="name">
+                    <div class="field-card-info">
+                        <span class="field-card-label">Full Name / पूरा नाम</span>
+                        <span class="field-card-value" id="val-profile-name">Priya Sharma / प्रिया शर्मा</span>
+                    </div>
+                    <button type="button" class="btn-field-edit" data-field="name"
+                        aria-label="Edit Full Name">✏️</button>
+                </div>
+
+                <!-- Field 2: Date of Birth -->
+                <div class="field-card-item" data-field="dob">
+                    <div class="field-card-info">
+                        <span class="field-card-label">Date of Birth / जन्म तिथि</span>
+                        <span class="field-card-value" id="val-profile-dob">14 / 08 / 1998</span>
+                    </div>
+                    <button type="button" class="btn-field-edit" data-field="dob"
+                        aria-label="Edit Date of Birth">✏️</button>
+                </div>
+
+                <!-- Field 3: Blood Group -->
+                <div class="field-card-item" data-field="blood_group">
+                    <div class="field-card-info">
+                        <span class="field-card-label">Blood Group / ब्लड ग्रुप</span>
+                        <span class="field-card-value" id="val-profile-blood">O+ (ओ पॉजिटिव)</span>
+                    </div>
+                    <button type="button" class="btn-field-edit" data-field="blood_group"
+                        aria-label="Edit Blood Group">✏️</button>
+                </div>
+
+                <!-- Field 4: Local Area -->
+                <div class="field-card-item" data-field="area">
+                    <div class="field-card-info">
+                        <span class="field-card-label">Local Area / स्थानीय इलाका</span>
+                        <span class="field-card-value" id="val-profile-area">Rajouri Garden, New Delhi / राजौरी गार्डन,
+                            नई दिल्ली</span>
+                    </div>
+                    <button type="button" class="btn-field-edit" data-field="area"
+                        aria-label="Edit Local Area">✏️</button>
+                </div>
+
+                <!-- Field 5: Phone Number -->
+                <div class="field-card-item" data-field="phone">
+                    <div class="field-card-info">
+                        <span class="field-card-label">Phone Number / फ़ोन नंबर</span>
+                        <span class="field-card-value" id="val-profile-phone">+91 90123 45678</span>
+                    </div>
+                    <button type="button" class="btn-field-edit" data-field="phone"
+                        aria-label="Edit Phone Number">✏️</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- SECONDARY SCREEN: SAKHI MULTI-LANGUAGE CHATBOT             -->
+        <!-- ========================================================== -->
+        <section id="screen-chat" class="screen-view hidden" aria-label="Mental Health Assistant">
+            <div class="chat-top-bar">
+                <button type="button" id="btn-back-chat" class="btn-chat-back-circle"
+                    aria-label="Back to Dashboard">←</button>
+                <div class="brand-mini-center">
+                    <span class="brand-mini-shield">🌸</span>
+                    <span class="brand-mini-title">RakshaSakhi</span>
+                    <span class="brand-mini-hindi">रक्षासखी</span>
+                </div>
+                <div class="chat-top-actions">
+                    <button type="button" id="btn-chat-switch-lang" class="btn-chat-lang-pill"
+                        title="Switch Language / भाषा बदलें">🌐 <span id="current-lang-indicator">Lang</span></button>
+                    <button type="button" id="btn-chat-info" class="btn-chat-info-circle"
+                        aria-label="App Info">ℹ️</button>
+                </div>
+            </div>
+
+            <!-- Sakhi Companion Header Card (sakhi_1st_page.png) -->
+            <div class="sakhi-companion-card">
+                <div class="sakhi-avatar-circle">
+                    <span class="sakhi-avatar-emoji">💬</span>
+                    <span class="sakhi-avatar-status-dot"></span>
+                </div>
+                <div class="sakhi-card-info">
+                    <h3 class="sakhi-title">Sakhi</h3>
+                    <p class="sakhi-subtitle">Mental Health Companion / मानसिक स्वास्थ्य साथी • <span
+                            class="status-online">Online 🟢</span></p>
+                </div>
+            </div>
+
+            <!-- Date Divider Pill -->
+            <div class="chat-date-divider">
+                <span class="date-badge">Today / आज</span>
+            </div>
+
+            <!-- Language Selection Section (Initial View from sakhi_1st_page.png) -->
+            <div id="sakhi-language-selection" class="sakhi-lang-selection-view">
+                <div class="message bot sakhi-initial-greeting">
+                    <p>नमस्ते! मुझसे बात करने के लिए अपनी पसंदीदा भाषा चुनें।</p>
+                    <p>Hi! Please choose your preferred language to start our conversation.</p>
+                    <p>Hello! Mere sath baat karne ke liye apni language select karein.</p>
+                </div>
+
+                <div class="lang-cards-grid">
+                    <div class="lang-cards-row">
+                        <button type="button" class="lang-card card-en" data-lang="en" id="btn-lang-en">
+                            <span class="lang-card-title">English</span>
+                            <span class="lang-card-icon">💬</span>
+                        </button>
+                        <button type="button" class="lang-card card-hi" data-lang="hi" id="btn-lang-hi">
+                            <span class="lang-card-title">हिंदी</span>
+                            <span class="lang-card-icon">💬</span>
+                        </button>
+                    </div>
+                    <div class="lang-cards-center-row">
+                        <button type="button" class="lang-card card-hinglish" data-lang="hinglish"
+                            id="btn-lang-hinglish">
+                            <span class="lang-card-title">Hinglish</span>
+                            <span class="lang-card-icon">🔤</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lang-selection-hint">
+                    <span>| Once you select, we will talk in that language. |</span>
+                    <span class="hint-hindi">| एक बार चुनने के बाद, हम उसी भाषा में बात करेंगे। |</span>
+                </div>
+            </div>
+
+            <!-- Active Conversation Container -->
+            <div class="chat-messages-container hidden" id="chat-messages">
+                <!-- Dynamically rendered messages -->
+            </div>
+
+            <!-- Tailored Prompt Chips Container -->
+            <div id="sakhi-prompt-chips" class="quick-chips-row hidden">
+                <!-- Populated dynamically with .quick-chip elements -->
+            </div>
+
+            <!-- Chat Input Bar -->
+            <div class="chat-input-bar">
+                <span class="input-decor-icon">🎙️</span>
+                <span class="input-decor-icon">➕</span>
+                <input type="text" id="chat-input"
+                    placeholder="Select a language to start / शुरू करने के लिए भाषा चुनें" autocomplete="off" disabled>
+                <button type="button" id="btn-send-chat" class="btn-send" aria-label="Send Message" disabled>➔</button>
+            </div>
+
+            <div class="chat-bottom-action">
+                <button type="button" id="btn-view-status" class="link-status-view">View Alert Status</button>
+            </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- DEDICATED SIMPLE SOS CHAT SCREEN (sos_chatbot_page.png)    -->
+        <!-- ========================================================== -->
+        <section id="screen-sos-chat" class="screen-view hidden" aria-label="Dedicated Simple SOS Chat">
+            <div class="sos-chat-top-bar">
+                <button type="button" id="btn-sos-chat-back" class="btn-chat-back-circle"
+                    aria-label="Back to Dashboard">←</button>
+                <div class="brand-mini-center">
+                    <span class="brand-mini-shield">🛡️</span>
+                    <span class="brand-mini-title sos-title">RakshaSakhi</span>
+                    <span class="brand-mini-hindi sos-hindi">रक्षासखी</span>
+                </div>
+                <!-- Interactive Siren Toggle (Start / Stop) Button -->
+                <button type="button" id="btn-sos-siren" class="btn-siren-toggle" aria-label="Toggle Siren Alarm"
+                    title="Toggle Safety Siren">
+                    <span class="siren-icon">🚨</span>
+                    <span id="sos-siren-label" class="siren-label-text">Siren OFF</span>
+                </button>
+                <input type="checkbox" id="siren-checkbox" style="display:none;" aria-hidden="true">
+            </div>
+
+            <div class="chat-date-divider">
+                <span class="date-badge">Today / आज</span>
+            </div>
+
+            <div id="sos-chat-messages" class="sos-chat-messages-container">
+                <div class="message bot sos-bot-guidance">
+                    Are you in danger? Share your situation or choose a quick message below.
+                </div>
+            </div>
+
+            <!-- Emergency Quick Action Chips -->
+            <div id="sos-emergency-chips" class="sos-chips-container">
+                <button type="button" class="sos-quick-chip quick-chip"
+                    data-msg="I am being followed / मेरा पीछा किया जा रहा है">
+                    I am being followed / मेरा पीछा किया जा रहा है
+                </button>
+                <button type="button" class="sos-quick-chip quick-chip"
+                    data-msg="Need urgent help / तत्काल सहायता चाहिए">
+                    Need urgent help / तत्काल सहायता चाहिए
+                </button>
+                <button type="button" class="sos-quick-chip quick-chip"
+                    data-msg="Safe for now / अभी के लिए सुरक्षित हूँ">
+                    Safe for now / अभी के लिए सुरक्षित हूँ
+                </button>
+            </div>
+
+            <div class="sos-chat-input-bar">
+                <span class="input-decor-icon">🎙️</span>
+                <span class="input-decor-icon">➕</span>
+                <input type="text" id="sos-chat-input" placeholder="Type your message... / अपना संदेश लिखें..."
+                    autocomplete="off">
+                <button type="button" id="btn-send-sos-chat" class="btn-send-sos"
+                    aria-label="Send Emergency Message">➔</button>
+            </div>
+
+            <div class="sos-bottom-actions">
+                <button type="button" id="btn-sos-view-status" class="link-status-view">View Alert Status / अलर्ट स्थिति
+                    देखें</button>
+            </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- SECONDARY SCREEN: ALERT STATUS SCREEN                      -->
+        <!-- ========================================================== -->
+        <section id="screen-status" class="screen-view hidden" aria-label="Alert Status">
+            <div class="status-top-bar">
+                <button type="button" id="btn-status-back" class="btn-chat-back">← Back</button>
+                <h3 class="status-heading">Emergency Status</h3>
+            </div>
+
+            <div class="glass-status-tile">
+                <div class="status-metric-row">
+                    <span class="metric-label">Triggered At:</span>
+                    <span class="metric-val" id="status-time">--:--</span>
+                </div>
+                <div class="status-metric-row">
+                    <span class="metric-label">GPS Location:</span>
+                    <span class="metric-val" id="status-location">Fetching...</span>
+                </div>
+                <div class="status-metric-row">
+                    <span class="metric-label">Telegram Alert:</span>
+                    <span class="metric-val pending" id="status-telegram">Pending</span>
+                </div>
+            </div>
+
+            <div class="status-actions-block">
+                <button type="button" id="btn-status-open-sos-chat" class="btn-action-sos-chat">
+                    <span>💬 Open SOS Emergency Chat / लाइव सुरक्षा चैट</span>
+                </button>
+                <a href="sms:112?body=Emergency!%20Need%20help." class="btn-fallback-sms">
+                    <span>✉️ Fallback SMS (112)</span>
+                </a>
+                <button type="button" id="btn-reset" class="btn-reset-safe">
+                    <span>🛡️ I am safe now / Reset</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- EMERGENCY CONTACTS MANAGEMENT DRAWER MODAL                 -->
+        <!-- ========================================================== -->
+        <div id="contacts-modal" class="modal-overlay hidden" role="dialog" aria-modal="true"
+            aria-labelledby="contacts-modal-title">
+            <div class="modal-container">
+                <div class="glass-modal-card drawer-card">
+                    <div class="modal-header-row">
+                        <div class="modal-title-with-icon">
+                            <span class="modal-title-icon">👥</span>
+                            <h3 id="contacts-modal-title" class="modal-heading">Emergency Contacts</h3>
+                        </div>
+                        <button type="button" id="btn-close-contacts" class="btn-modal-close"
+                            aria-label="Close contacts">✕</button>
+                    </div>
+                    <p class="modal-subtext-note">Trusted contacts will receive instant SOS alerts with your real-time
+                        GPS location via Telegram.</p>
+
+                    <!-- Saved Contacts List Section -->
+                    <div class="contacts-saved-block">
+                        <div class="saved-header-row">
+                            <span class="block-title">Saved Contacts</span>
+                            <span class="badge-count-pill" id="contacts-count">0</span>
+                        </div>
+                        <div id="contacts-list" class="contacts-scroll-list">
+                            <!-- Rendered dynamically -->
                         </div>
                     </div>
-                    <div class="help-step-item">
-                        <div class="step-num-badge">2</div>
-                        <div class="step-content">
-                            <strong>Send /start</strong>
-                            <p>The bot will immediately reply with your numeric ID (e.g. <code>5002668099</code>).</p>
+
+                    <!-- Add Contact Form Section Inside Drawer -->
+                    <div class="add-contact-drawer-section">
+                        <h4 class="add-title">+ Add New Contact</h4>
+                        <form id="form-add-contact" class="drawer-contact-form" onsubmit="return false;">
+                            <div class="form-row-group">
+                                <label for="drawer-contact-name" class="styled-label">Full Name *</label>
+                                <input type="text" id="drawer-contact-name" class="styled-input"
+                                    placeholder="e.g. Papa, Priya Sharma" required>
+                            </div>
+                            <div class="form-row-group">
+                                <label for="drawer-contact-phone" class="styled-label">Phone Number *</label>
+                                <input type="tel" id="drawer-contact-phone" class="styled-input"
+                                    placeholder="e.g. +91 98XXX XXXXX" required>
+                            </div>
+                            <div class="form-row-group">
+                                <label for="drawer-contact-telegram" class="styled-label">Telegram Chat ID *</label>
+                                <input type="text" id="drawer-contact-telegram" class="styled-input"
+                                    placeholder="e.g. 1234567890" required>
+                                <button type="button" class="btn-id-help-badge" id="btn-drawer-telegram-help">
+                                    <span id="btn-open-id-help">❓ How to find Telegram ID? (Tap for instructions)</span>
+                                </button>
+                            </div>
+                            <div class="form-row-group">
+                                <label for="drawer-contact-relationship" class="styled-label">Relationship</label>
+                                <select id="drawer-contact-relationship" class="styled-select">
+                                    <option value="Friend" selected>Friend / दोस्त</option>
+                                    <option value="Family">Family / परिवार</option>
+                                    <option value="Parent">Parent / माता-पिता</option>
+                                    <option value="Sibling">Sibling / भाई-बहन</option>
+                                    <option value="Guardian">Guardian / अभिभावक</option>
+                                    <option value="Other">Other / अन्य</option>
+                                </select>
+                            </div>
+                            <button type="submit" id="btn-save-drawer-contact" class="btn-primary-pill mt-2">
+                                <span>+ Save Emergency Contact</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================== -->
+        <!-- USER SAFETY PROFILE MODAL                                  -->
+        <!-- ========================================================== -->
+        <div id="user-profile-modal" class="modal-overlay hidden" role="dialog" aria-modal="true"
+            aria-labelledby="profile-modal-title">
+            <div class="glass-modal-card">
+                <div class="modal-header-row">
+                    <div class="modal-title-with-icon">
+                        <span class="modal-title-icon">👤</span>
+                        <h3 id="profile-modal-title" class="modal-heading">Safety Profile / सुरक्षा प्रोफ़ाइल</h3>
+                    </div>
+                    <button type="button" id="btn-close-profile" class="btn-modal-close"
+                        aria-label="Close profile">✕</button>
+                </div>
+                <p class="modal-subtext-note">Your profile details are stored safely on your device and attached to
+                    emergency broadcasts.</p>
+
+                <form id="form-user-profile" class="profile-modal-form" onsubmit="return false;">
+                    <div class="form-row-group">
+                        <label for="profile-name" class="styled-label">Full Name * / पूरा नाम</label>
+                        <input type="text" id="profile-name" class="styled-input" placeholder="Enter your full name"
+                            maxlength="50" required>
+                    </div>
+                    <div class="form-row-group">
+                        <label for="profile-dob" class="styled-label">Date of Birth / जन्म तिथि</label>
+                        <input type="date" id="profile-dob" class="styled-input date-input">
+                    </div>
+                    <div class="form-row-group">
+                        <label for="profile-blood-group" class="styled-label">Blood Group / ब्लड ग्रुप</label>
+                        <select id="profile-blood-group" class="styled-select">
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="Don't know">Don't know / पता नहीं</option>
+                        </select>
+                    </div>
+                    <div class="form-row-group">
+                        <label for="profile-area" class="styled-label">Local Area / City / इलाका</label>
+                        <input type="text" id="profile-area" class="styled-input"
+                            placeholder="e.g. South Delhi, Rohini, Noida">
+                    </div>
+
+                    <div class="profile-actions-dual">
+                        <button type="button" id="btn-revert-profile" class="btn-secondary-pill">Discard
+                            Changes</button>
+                        <button type="button" id="btn-save-profile" class="btn-primary-pill">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========================================================== -->
+        <!-- APP INFO MODAL                                             -->
+        <!-- ========================================================== -->
+        <div id="info-modal" class="modal-overlay hidden" role="dialog" aria-modal="true"
+            aria-labelledby="info-modal-title">
+            <div class="glass-modal-card">
+                <div class="modal-header-row">
+                    <div class="modal-title-with-icon">
+                        <span class="modal-title-icon">ℹ️</span>
+                        <h3 id="info-modal-title" class="modal-heading">About RakshaSakhi</h3>
+                    </div>
+                    <button type="button" id="btn-close-info" class="btn-modal-close" aria-label="Close info">✕</button>
+                </div>
+
+                <div class="info-banner-badge">
+                    <div class="info-logo-badge">🛡️</div>
+                    <div class="info-brand-meta">
+                        <h4 class="info-app-title">RakshaSakhi PWA <span class="hindi-tag">रक्षासखी</span></h4>
+                        <span class="info-version-pill">v1.0.0 &bull; Production Ready</span>
+                    </div>
+                </div>
+
+                <p class="info-desc">
+                    RakshaSakhi is a modern women-safety and citizen emergency companion combining rapid SOS broadcast,
+                    live GPS tracking, and AI-powered mental wellness support.
+                </p>
+
+                <div class="info-feature-list">
+                    <div class="info-feature-item">
+                        <span class="info-icon">🚨</span>
+                        <div>
+                            <strong>One-Tap Emergency SOS Broadcast:</strong> Broadcasts instant emergency alerts to all
+                            saved contacts with live Google Maps links.
                         </div>
                     </div>
-                    <div class="help-step-item">
-                        <div class="step-num-badge">3</div>
-                        <div class="step-content">
-                            <strong>Copy &amp; Paste in Form</strong>
-                            <p>Copy the numeric ID and paste it in the Telegram Chat ID field.</p>
+                    <div class="info-feature-item">
+                        <span class="info-icon">📍</span>
+                        <div>
+                            <strong>Precise Geolocation:</strong> Continuous active location tracking during
+                            emergencies.
+                        </div>
+                    </div>
+                    <div class="info-feature-item">
+                        <span class="info-icon">🎙️</span>
+                        <div>
+                            <strong>Offline Voice Keyword Detection:</strong> Automated background keyword listener for
+                            hands-free emergencies.
+                        </div>
+                    </div>
+                    <div class="info-feature-item">
+                        <span class="info-icon">💬</span>
+                        <div>
+                            <strong>Sakhi Mental Health Bot:</strong> 24/7 intelligent empathetic companion for daily
+                            wellness and stress support.
                         </div>
                     </div>
                 </div>
 
-                <div class="help-popup-actions">
-                    <a href="https://t.me/userinfobot" target="_blank" rel="noopener noreferrer" class="btn-popup-action btn-telegram">
-                        <span class="btn-popup-icon">🔍</span> Open @userinfobot Directly
-                    </a>
-                    <a id="btn-request-id-whatsapp" href="https://wa.me/?text=Hey!%20Can%20you%20open%20https://t.me/userinfobot%20and%20send%20me%20your%20numeric%20Telegram%20ID?%20I%20am%20adding%20you%20as%20my%20emergency%20contact%20on%20RakshaSakhi." target="_blank" rel="noopener noreferrer" class="btn-popup-action btn-whatsapp">
-                        <span class="btn-popup-icon">💬</span> Request ID from Contact via WhatsApp
-                    </a>
-                    <button id="btn-dismiss-id-help" type="button" class="btn-popup-action btn-dismiss-popup">
-                        Got it / Close
+                <div class="emergency-helplines-card">
+                    <h5 class="helpline-title">National Emergency Helplines (India)</h5>
+                    <div class="helpline-grid">
+                        <a href="tel:112" class="helpline-pill">📞 All Emergencies: 112</a>
+                        <a href="tel:1091" class="helpline-pill">📞 Women Helpline: 1091</a>
+                        <a href="tel:100" class="helpline-pill">📞 Police: 100</a>
+                        <a href="tel:1098" class="helpline-pill">📞 Childline: 1098</a>
+                    </div>
+                </div>
+
+                <div class="info-modal-footer">
+                    <button type="button" id="btn-dismiss-info" class="btn-primary-pill w-100">
+                        <span>Close / बंद करें</span>
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- ========================================================== -->
+        <!-- ADD / EDIT EMERGENCY CONTACT MODAL FORM (contact_page.png) -->
+        <!-- ========================================================== -->
+        <div id="modal-contact-form" class="modal-overlay hidden" role="dialog" aria-modal="true"
+            aria-labelledby="modal-contact-form-title">
+            <div class="glass-modal-card contact-form-card">
+                <div class="modal-header-row">
+                    <button type="button" id="btn-close-contact-modal" class="btn-back-square"
+                        aria-label="Close modal">←</button>
+                    <div class="brand-mini-center">
+                        <span class="brand-mini-shield">🛡️</span>
+                        <span class="brand-mini-title">RakshaSakhi</span>
+                        <span class="brand-mini-hindi">रक्षासखी</span>
+                    </div>
+                    <button type="button" id="btn-modal-loop-skip" class="btn-loop-skip-pill hidden"
+                        aria-label="Skip adding another contact">Skip / स्किप करें</button>
+                </div>
+
+                <div class="screen-page-header text-center">
+                    <h2 id="modal-contact-form-title" class="page-title-orange">Add Emergency Contact<br><span
+                            class="title-hindi">आपातकालीन संपर्क जोड़ें</span></h2>
+                    <p id="modal-contact-form-desc" class="page-desc-muted">Whom should we notify in an
+                        emergency?<br><span class="desc-hindi">आपातकाल में हम किसे सूचित करें?</span></p>
+                </div>
+
+                <form id="form-modal-contact" class="modal-contact-form" onsubmit="return false;">
+                    <input type="hidden" id="modal-contact-id" value="">
+
+                    <div class="form-row-group">
+                        <label for="modal-contact-name" class="styled-label">Full Name * / पूरा नाम</label>
+                        <div class="form-control-wrap">
+                            <span class="field-icon">👤</span>
+                            <input type="text" id="modal-contact-name" class="styled-input"
+                                placeholder="e.g. Papa, Priya Sharma" required>
+                        </div>
+                        <div id="error-modal-contact-name" class="field-error-msg"></div>
+                    </div>
+
+                    <div class="form-row-group">
+                        <label for="modal-contact-phone" class="styled-label">Phone Number * / फ़ोन नंबर</label>
+                        <div class="form-control-wrap">
+                            <span class="field-icon">📞</span>
+                            <input type="tel" id="modal-contact-phone" class="styled-input"
+                                placeholder="e.g. +91 98XXX XXXXX" required>
+                        </div>
+                        <div id="error-modal-contact-phone" class="field-error-msg"></div>
+                    </div>
+
+                    <div class="form-row-group">
+                        <label for="modal-contact-telegram" class="styled-label">Telegram Chat ID * / टेलीग्राम चैट
+                            आईडी</label>
+                        <div class="form-control-wrap">
+                            <span class="field-icon">✈️</span>
+                            <input type="text" id="modal-contact-telegram" class="styled-input"
+                                placeholder="e.g. 1234567890" required>
+                        </div>
+                        <div id="error-modal-contact-telegram" class="field-error-msg"></div>
+                        <button type="button" class="btn-id-help-badge" id="btn-modal-telegram-help">
+                            <span>❓ How to find Telegram ID? (Tap for instructions)<br><span
+                                    class="hindi-help-txt">टेलीग्राम आईडी कैसे खोजें?</span></span>
+                        </button>
+                    </div>
+
+                    <div class="form-row-group">
+                        <label for="modal-contact-relationship" class="styled-label">Relationship / संबंध</label>
+                        <select id="modal-contact-relationship" class="styled-select">
+                            <option value="Friend" selected>Friend / दोस्त</option>
+                            <option value="Family">Family / परिवार</option>
+                            <option value="Parent">Parent / माता-पिता</option>
+                            <option value="Sibling">Sibling / भाई-बहन</option>
+                            <option value="Guardian">Guardian / अभिभावक</option>
+                            <option value="Other">Other / अन्य</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="btn-modal-contact-submit" class="btn-primary-pill mt-4">
+                        <span id="btn-modal-contact-submit-text">+ Add Emergency Contact<br><span
+                                class="btn-subtext-hindi">+ आपातकालीन संपर्क जोड़ें</span></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========================================================== -->
+        <!-- SINGLE FIELD EDIT MODAL                                    -->
+        <!-- ========================================================== -->
+        <div id="modal-field-edit" class="modal-overlay hidden" role="dialog" aria-modal="true"
+            aria-labelledby="modal-field-edit-title">
+            <div class="glass-modal-card single-field-card">
+                <div class="modal-header-row">
+                    <h3 id="modal-field-edit-title" class="modal-heading">Edit Field</h3>
+                    <button type="button" id="btn-close-field-edit" class="btn-modal-close"
+                        aria-label="Close">✕</button>
+                </div>
+                <form id="form-field-edit" onsubmit="return false;">
+                    <input type="hidden" id="edit-field-key" value="">
+                    <div class="form-row-group">
+                        <label id="edit-field-label" for="edit-field-input" class="styled-label">Field Value</label>
+                        <div id="edit-field-input-container">
+                            <input type="text" id="edit-field-input" class="styled-input" required>
+                        </div>
+                    </div>
+                    <div class="profile-actions-dual mt-3">
+                        <button type="button" id="btn-cancel-field-edit" class="btn-secondary-pill">Cancel</button>
+                        <button type="submit" id="btn-save-field-edit" class="btn-primary-pill">Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -244,8 +1375,10 @@
 
     <!-- Voice trigger libraries (must load before tfjs-voice.js and app.js) -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.5.4/dist/speech-commands.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.5.4/dist/speech-commands.min.js"></script>
     <script src="/js/tfjs-voice.js"></script>
     <script src="/js/app.js"></script>
 </body>
+
 </html>

@@ -46,3 +46,17 @@ backend/rakshasakhi.db
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Agent & Testing Documentation / Metadata
+.agents/
+PROJECT.md
+TEST_INFRA.md
+TEST_READY.md
+TEST_*.md
+
+# Test Files & Reports
+tests/test_*.py
+tests/conftest.py
+
+# Logs and Debug files
+backend/debug_trace.log
