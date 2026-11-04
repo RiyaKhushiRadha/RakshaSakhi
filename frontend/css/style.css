@@ -1059,13 +1059,134 @@ html, body {
                 var(--bg-dark);
 }
 
-/* Top Quick Action Row (3 Quick Buttons) */
-.dash-quick-row {
+/* Top Quick Action Row (4 Pill Buttons Matching main_page.png) */
+.dash-quick-row,
+.dash-quick-row.dash-header-4col {
     display: grid;
-    grid-template-columns: 1.8fr 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     width: 100%;
+}
+
+.dash-quick-card-pill {
+    background: transparent;
+    border: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.dash-quick-card-pill:hover {
+    transform: translateY(-3px);
+}
+
+.dash-quick-card-pill:active {
+    transform: translateY(1px);
+}
+
+.pill-icon-box {
+    width: 62px;
+    height: 62px;
+    border-radius: 22px;
+    background: rgba(28, 16, 20, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255, 65, 77, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 16px rgba(255, 65, 77, 0.22);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dash-quick-card-pill:hover .pill-icon-box {
+    border-color: rgba(255, 94, 58, 0.8);
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.6), 0 0 24px rgba(255, 65, 77, 0.45);
+}
+
+/* Contacts Circle Badge */
+.contacts-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #ff3b30 0%, #d32f2f 70%, #990000 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 14px rgba(255, 59, 48, 0.65);
+}
+
+.contacts-icon .header-pill-svg {
+    transform: rotate(0deg);
+}
+
+/* Other Icon SVGs */
+.profile-icon,
+.audio-icon,
+.info-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff7a59;
+    transition: all 0.25s ease;
+}
+
+/* Audio Alert Active / Listening state */
+.btn-audio-alert.active .pill-icon-box,
+.btn-audio-alert.listening .pill-icon-box {
+    border-color: #ff1744;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 23, 68, 0.4) 0%, rgba(32, 14, 18, 0.95) 100%);
+    box-shadow: 0 0 28px rgba(255, 23, 68, 0.75), 0 0 16px rgba(255, 94, 58, 0.55);
+}
+
+.btn-audio-alert.active .audio-icon,
+.btn-audio-alert.listening .audio-icon {
+    color: #ffffff;
+    filter: drop-shadow(0 0 8px #ff5252);
+    animation: micActiveWiggle 2.5s infinite ease-in-out;
+}
+
+.btn-audio-alert .voice-mic-ping-ring {
+    position: absolute;
+    inset: -3px;
+    border-radius: 24px;
+    border: 2px solid rgba(255, 23, 68, 0.85);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.btn-audio-alert.listening .voice-mic-ping-ring {
+    animation: micPingRing 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* 4-Pill Labels */
+.pill-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #cfd8dc;
+    text-align: center;
+    line-height: 1.25;
+    letter-spacing: 0.1px;
+    transition: color 0.2s ease;
+}
+
+.dash-quick-card-pill:hover .pill-label {
+    color: #ffffff;
+}
+
+.btn-audio-alert.active .pill-label,
+.btn-audio-alert.listening .pill-label {
+    color: #ff8a65;
+    font-weight: 700;
 }
 
 .dash-quick-card-contacts {
@@ -1289,6 +1410,232 @@ html, body {
     color: #ff9d80;
     letter-spacing: 0.5px;
     margin-top: 1px;
+}
+
+/* ==========================================================================
+   INTERACTIVE VOICE KEYWORD TRIGGER ACTION BANNER (#voice-trigger-btn)
+   ========================================================================== */
+.dash-voice-action-wrap {
+    width: 100%;
+    margin: 4px 0 12px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.voice-trigger-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 18px;
+    background: rgba(21, 24, 33, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    -webkit-user-select: none;
+    text-align: left;
+}
+
+.voice-trigger-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 94, 58, 0.35);
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+}
+
+.voice-trigger-btn:active {
+    transform: translateY(1px);
+}
+
+/* Inactive / OFF state */
+.voice-trigger-btn.inactive {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(20, 22, 30, 0.8);
+}
+
+.voice-trigger-btn.inactive .voice-mic-icon-wrapper {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+}
+
+.voice-trigger-btn.inactive .voice-chip-dot {
+    background: #757575;
+}
+
+.voice-trigger-btn.inactive .voice-toggle-chip {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+}
+
+/* Active / Listening state */
+.voice-trigger-btn.active,
+.voice-trigger-btn.listening {
+    border-color: rgba(255, 94, 58, 0.65);
+    background: linear-gradient(135deg, rgba(35, 22, 28, 0.95) 0%, rgba(20, 24, 38, 0.95) 100%);
+    box-shadow: 0 0 20px rgba(255, 94, 58, 0.25), 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.voice-trigger-btn.active .voice-mic-icon-wrapper,
+.voice-trigger-btn.listening .voice-mic-icon-wrapper {
+    background: linear-gradient(135deg, #ff5e3a 0%, #ff2a6d 100%);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    box-shadow: 0 0 16px rgba(255, 94, 58, 0.65);
+}
+
+.voice-trigger-btn.active .voice-status-main,
+.voice-trigger-btn.listening .voice-status-main {
+    color: #ff8a65;
+    font-weight: 700;
+}
+
+.voice-trigger-btn.active .voice-toggle-chip,
+.voice-trigger-btn.listening .voice-toggle-chip {
+    background: rgba(255, 94, 58, 0.18);
+    border-color: rgba(255, 94, 58, 0.5);
+    color: #ff8a65;
+}
+
+.voice-trigger-btn.active .voice-chip-dot,
+.voice-trigger-btn.listening .voice-chip-dot {
+    background: #00e676;
+    box-shadow: 0 0 8px #00e676;
+    animation: pulseVoiceDot 1.2s infinite ease-in-out;
+}
+
+/* Pulsing visual indicator around microphone */
+.voice-mic-icon-wrapper {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.25s ease;
+}
+
+.voice-mic-icon {
+    font-size: 20px;
+    line-height: 1;
+    z-index: 2;
+    transition: transform 0.2s ease;
+}
+
+.voice-trigger-btn.listening .voice-mic-icon {
+    animation: micActiveWiggle 2.5s infinite ease-in-out;
+}
+
+.voice-mic-ping-ring {
+    position: absolute;
+    inset: -4px;
+    border-radius: 18px;
+    border: 2px solid rgba(255, 94, 58, 0.8);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.voice-trigger-btn.listening .voice-mic-ping-ring {
+    animation: micPingRing 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes micPingRing {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.85;
+    }
+    75% {
+        transform: scale(1.35);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+
+@keyframes pulseVoiceDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.8); }
+}
+
+@keyframes micActiveWiggle {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+}
+
+/* Text and details */
+.voice-text-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.voice-status-main {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1.2;
+    letter-spacing: 0.2px;
+}
+
+.voice-status-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.voice-toggle-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 99px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    flex-shrink: 0;
+    transition: all 0.25s ease;
+}
+
+.voice-chip-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    transition: background 0.25s ease;
+}
+
+/* Loading & error states */
+.voice-trigger-btn.loading {
+    border-color: rgba(255, 179, 0, 0.5);
+    background: rgba(30, 26, 20, 0.85);
+}
+.voice-trigger-btn.loading .voice-status-main {
+    color: #ffb300;
+}
+.voice-trigger-btn.loading .voice-toggle-chip {
+    color: #ffb300;
+    border-color: rgba(255, 179, 0, 0.4);
+}
+
+.voice-trigger-btn.error {
+    border-color: rgba(244, 67, 54, 0.5);
+}
+.voice-trigger-btn.error .voice-status-main {
+    color: #ff5252;
 }
 
 /* Hero SOS Trigger with Concentric Pulse Rings */
@@ -1590,6 +1937,23 @@ html, body {
 
 .glass-chatbot-card:hover .card-arrow-icon {
     transform: translateX(4px);
+}
+
+.card-sparkle-icon {
+    font-size: 20px;
+    color: #ce93d8;
+    filter: drop-shadow(0 0 8px rgba(206, 147, 216, 0.6));
+    transition: transform 0.2s ease;
+}
+
+.glass-chatbot-card:hover .card-sparkle-icon {
+    transform: scale(1.15) rotate(15deg);
+}
+
+.gps-arrow-icon {
+    font-size: 14px;
+    color: #ff9100;
+    filter: drop-shadow(0 0 6px #ff9100);
 }
 
 /* ==========================================================================

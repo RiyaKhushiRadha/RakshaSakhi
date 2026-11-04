@@ -660,39 +660,102 @@
         <!-- PAGE 9: MAIN DASHBOARD SCREEN                              -->
         <!-- ========================================================== -->
         <section id="screen-dashboard" class="screen-view hidden" aria-label="Main Dashboard">
-            <!-- Top Quick Action Row (3 Quick Buttons) -->
-            <div class="dash-quick-row">
-                <button type="button" id="btn-header-contacts" class="dash-quick-card-contacts btn-menu"
+            <!-- Top Quick Action Row (4 Pill Buttons Matching main_page.png) -->
+            <div class="dash-quick-row dash-header-4col">
+                <!-- 1. Emergency Contacts -->
+                <button type="button" id="btn-header-contacts" class="dash-quick-card-pill btn-menu"
                     aria-label="Emergency Contacts">
-                    <div class="quick-card-icon-wrap">
-                        <span id="btn-menu" class="quick-card-circle-icon btn-menu">📞👥</span>
+                    <div class="pill-icon-box contacts-box">
+                        <span id="btn-menu" class="pill-circle-icon contacts-icon">
+                            <svg class="header-pill-svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M6.62 10.79C8.06 13.62 10.38 15.94 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.93C17.55 15.3 18.75 15.5 20 15.5C20.55 15.5 21 15.95 21 16.5V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z"
+                                    fill="#ffffff" />
+                            </svg>
+                        </span>
+                        <span id="badge-contacts-count" style="display:none;">0</span>
                     </div>
-                    <div class="quick-card-text">
-                        <span class="quick-card-title">Emergency Contacts</span>
-                        <span class="quick-card-subtitle">Manage Saved (<span id="badge-contacts-count">0</span>)</span>
-                    </div>
+                    <span class="pill-label">Emergency<br>Contacts</span>
                 </button>
 
-                <button type="button" id="btn-header-profile" class="dash-quick-card-square btn-profile"
-                    title="Personal Info" aria-label="Personal Info">
-                    <div class="square-icon-box">
-                        <span id="btn-profile" class="square-icon btn-profile">👤</span>
+                <!-- 2. Personal Details -->
+                <button type="button" id="btn-header-profile" class="dash-quick-card-pill btn-profile"
+                    title="Personal Details" aria-label="Personal Details">
+                    <div class="pill-icon-box profile-box">
+                        <span id="btn-profile" class="pill-circle-icon profile-icon">
+                            <svg class="header-pill-svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="8" r="4" stroke="#ff7a59" stroke-width="1.8" />
+                                <path d="M5 20C5 16.6863 8.13401 14 12 14C15.866 14 19 16.6863 19 20"
+                                    stroke="#ff7a59" stroke-width="1.8" stroke-linecap="round" />
+                            </svg>
+                        </span>
                     </div>
-                    <span class="square-label">Personal<br>Info</span>
+                    <span class="pill-label">Personal<br>Details</span>
                 </button>
 
-                <button type="button" id="btn-header-info" class="dash-quick-card-square btn-info" title="App Info"
+                <!-- 3. Audio Alert (Voice Trigger) -->
+                <button type="button" id="voice-trigger-btn" class="dash-quick-card-pill btn-audio-alert inactive"
+                    title="Audio Alert - Tap to Toggle Voice Trigger" aria-label="Audio Alert" aria-pressed="false">
+                    <div class="pill-icon-box audio-box">
+                        <span id="voice-mic-icon" class="pill-circle-icon audio-icon">
+                            <svg class="header-pill-svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14Z"
+                                    stroke="#ff7a59" stroke-width="1.8" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M19 10V11C19 14.866 15.866 18 12 18C8.13401 18 5 14.866 5 11V10"
+                                    stroke="#ff7a59" stroke-width="1.8" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M12 18V22M8 22H16" stroke="#ff7a59" stroke-width="1.8" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                        <span class="voice-mic-ping-ring"></span>
+                    </div>
+                    <span class="pill-label" id="voice-status-text">Audio<br>Alert</span>
+                    <span id="voice-indicator" style="display:none;"></span>
+                </button>
+
+                <!-- 4. App Info -->
+                <button type="button" id="btn-header-info" class="dash-quick-card-pill btn-info" title="App Info"
                     aria-label="App Info">
-                    <div class="square-icon-box">
-                        <span id="btn-info" class="square-icon btn-info">ℹ️</span>
+                    <div class="pill-icon-box info-box">
+                        <span id="btn-info" class="pill-circle-icon info-icon">
+                            <svg class="header-pill-svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="9" stroke="#ff7a59" stroke-width="1.8" />
+                                <path d="M12 8V8.01M12 11V16" stroke="#ff7a59" stroke-width="1.8"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </span>
                     </div>
-                    <span class="square-label">App<br>Info</span>
+                    <span class="pill-label">App<br>Info</span>
                 </button>
             </div>
 
             <!-- Brand Hero Centered Below Top Quick Buttons -->
             <div class="dash-brand-hero">
-                <div class="dash-shield-emblem">🛡️</div>
+                <div class="dash-shield-emblem">
+                    <svg class="brand-shield-svg" width="26" height="26" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L4 5V11C4 16.55 7.42 21.74 12 23C16.58 21.74 20 16.55 20 11V5L12 2Z"
+                            fill="url(#dash-shield-grad)" stroke="#ff7a59" stroke-width="1.5"
+                            stroke-linejoin="round" />
+                        <path
+                            d="M12 7.5C10.6 6.3 8.3 6.8 8.3 8.9C8.3 11.2 12 14 12 14C12 14 15.7 11.2 15.7 8.9C15.7 6.8 13.4 6.3 12 7.5Z"
+                            fill="#ffffff" opacity="0.95" />
+                        <defs>
+                            <linearGradient id="dash-shield-grad" x1="4" y1="2" x2="20" y2="23"
+                                gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#ff5e3a" />
+                                <stop offset="1" stop-color="#7c4dff" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
                 <h2 class="dash-title">RakshaSakhi</h2>
                 <span class="dash-hindi">रक्षासखी</span>
             </div>
@@ -718,27 +781,29 @@
                 <p class="sos-caption-text">Alerts contacts &amp; shares your GPS location<br><span
                         class="caption-hindi">संपर्कों को सूचित करता है और लाइव लोकेशन भेजता है</span></p>
 
-                <!-- GPS Status Pill Positioned Below SOS & Caption -->
+                <!-- GPS Status Pill Positioned Below SOS & Caption (Matching main_page.png) -->
                 <div class="gps-status-row">
                     <span id="badge-gps" class="status-pill-gps active">
-                        <span class="gps-dot"></span> ✈ GPS Active
+                        <span class="gps-arrow-icon">↗</span> GPS Active
                     </span>
                 </div>
             </div>
 
-            <!-- Bottom Mental Health Chatbot Card -->
+            <!-- Bottom Mental Health Chatbot Card (Matching main_page.png) -->
             <div class="dashboard-bottom-card-wrap">
                 <div id="card-chatbot" class="glass-chatbot-card" role="button" tabindex="0">
                     <div class="chatbot-avatar-wrap">
-                        <span class="chatbot-avatar-icon">💬</span>
-                        <span class="online-indicator"></span>
+                        <span class="chatbot-avatar-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM9 11C8.45 11 8 10.55 8 10C8 9.45 8.45 9 9 9C9.55 9 10 9.45 10 10C10 10.55 9.55 11 9 11ZM15 11C14.45 11 14 10.55 14 10C14 9.45 14.45 9 15 9C15.55 9 16 9.45 16 10C16 10.55 15.55 11 15 11ZM8.5 13.5C9.35 14.73 10.61 15.5 12 15.5C13.39 15.5 14.65 14.73 15.5 13.5H8.5Z" fill="#b388ff"/>
+                            </svg>
+                        </span>
                     </div>
                     <div class="chatbot-card-meta">
                         <h4 class="chatbot-title">Sakhi - Mental Health Chatbot</h4>
-                        <p class="chatbot-subtitle">Your daily companion. Chat, vent, or talk anytime.<br><span
-                                class="hindi-meta">सखी - हमेशा आपके साथ बातचीत और सहायता के लिए उपलब्ध।</span></p>
+                        <p class="chatbot-subtitle">Your daily companion. Chat, vent, or talk anytime</p>
                     </div>
-                    <span class="card-arrow-icon">➔</span>
+                    <span class="card-sparkle-icon">✦</span>
                 </div>
             </div>
         </section>

@@ -252,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================
     const sirenAudio = new Audio('/assets/audio/siren.mp3');
     sirenAudio.loop = true;
-    const sirenCheckbox = document.getElementById('siren-checkbox');
 
     function setSiren(on) {
         if (on) {
@@ -271,43 +270,91 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================
     // Voice trigger ("help" keyword) - needs tfjs-voice.js loaded in index.html
     // ==========================================================
+    const voiceTriggerBtn = document.getElementById('voice-trigger-btn');
     const voiceIndicator = document.getElementById('voice-indicator');
+    const voiceMicIcon = document.getElementById('voice-mic-icon');
+    const voiceStatusText = document.getElementById('voice-status-text');
     let voiceOn = false;
 
-    function setVoiceLabel(text, active = false) {
-        if (!voiceIndicator) return;
-        voiceIndicator.innerHTML = '<span class="icon">🎤</span> ' + text;
-        voiceIndicator.classList.toggle('active', active);
+    function updateVoiceTriggerUI(state) {
+        if (!voiceTriggerBtn) return;
+
+        if (state === 'active' || state === 'listening' || state === true) {
+            voiceTriggerBtn.classList.remove('inactive', 'loading', 'error');
+            voiceTriggerBtn.classList.add('active', 'listening');
+            voiceTriggerBtn.setAttribute('aria-pressed', 'true');
+            voiceTriggerBtn.setAttribute('title', 'Audio Alert: Listening for "Help" - Tap to disable');
+            if (voiceStatusText) voiceStatusText.innerHTML = 'Audio<br>Alert';
+        } else if (state === 'loading') {
+            voiceTriggerBtn.classList.remove('inactive', 'active', 'listening', 'error');
+            voiceTriggerBtn.classList.add('loading');
+            voiceTriggerBtn.setAttribute('aria-pressed', 'false');
+            if (voiceStatusText) voiceStatusText.innerHTML = 'Loading<br>Model…';
+        } else if (state === 'error') {
+            voiceTriggerBtn.classList.remove('inactive', 'active', 'listening', 'loading');
+            voiceTriggerBtn.classList.add('error');
+            voiceTriggerBtn.setAttribute('aria-pressed', 'false');
+            if (voiceStatusText) voiceStatusText.innerHTML = 'Audio<br>Error';
+        } else {
+            // Inactive / OFF state
+            voiceTriggerBtn.classList.remove('active', 'listening', 'loading', 'error');
+            voiceTriggerBtn.classList.add('inactive');
+            voiceTriggerBtn.setAttribute('aria-pressed', 'false');
+            voiceTriggerBtn.setAttribute('title', 'Audio Alert is OFF - Tap to enable Voice Trigger');
+            if (voiceStatusText) voiceStatusText.innerHTML = 'Audio<br>Alert';
+        }
     }
 
-    if (voiceIndicator) {
-        voiceIndicator.addEventListener('click', async () => {
-            if (typeof VoiceTrigger === 'undefined') {
-                setVoiceLabel('Voice scripts not loaded (check index.html)');
-                return;
-            }
-            if (voiceOn) {
-                VoiceTrigger.stop();
-                voiceOn = false;
-                setVoiceLabel('Voice Detection: Tap to enable');
-                return;
-            }
-            try {
-                await VoiceTrigger.start({
-                    onStatus: (t) => setVoiceLabel(t, VoiceTrigger.isListening()),
-                    onTrigger: () => {
-                        if (currentMode !== 'emergency') {
-                            triggerSource = 'voice';
-                            btnSOS.click(); // same flow as pressing the SOS button
-                        }
+    async function toggleVoiceDetection() {
+        if (typeof VoiceTrigger === 'undefined') {
+            updateVoiceTriggerUI('error');
+            return;
+        }
+        if (voiceOn) {
+            VoiceTrigger.stop();
+            voiceOn = false;
+            updateVoiceTriggerUI('off');
+            return;
+        }
+        try {
+            updateVoiceTriggerUI('loading');
+            await VoiceTrigger.start({
+                onStatus: () => {
+                    if (typeof VoiceTrigger !== 'undefined' && VoiceTrigger.isListening()) {
+                        updateVoiceTriggerUI('listening');
+                    } else {
+                        updateVoiceTriggerUI('loading');
                     }
-                });
-                voiceOn = true;
-            } catch (err) {
-                console.error('Voice trigger failed:', err);
-                setVoiceLabel('Voice unavailable: ' + err.message);
-            }
-        });
+                },
+                onTrigger: () => {
+                    console.log('🚨 VOICE KEYWORD "HELP" DETECTED - EXECUTING IMMEDIATE SOS ALERT');
+                    const now = new Date();
+                    triggerTimestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    if (statusTime) statusTime.innerText = triggerTimestamp;
+                    currentMode = 'emergency';
+                    setSiren(true);
+                    triggerSource = 'voice';
+                    if (btnSOS) {
+                        btnSOS.classList.add('triggered');
+                        setTimeout(() => btnSOS.classList.remove('triggered'), 1000);
+                    }
+                    // Immediate execution of emergency SOS alert pipeline with zero delay
+                    executeEmergencySos();
+                }
+            });
+            voiceOn = true;
+            updateVoiceTriggerUI('listening');
+        } catch (err) {
+            console.error('Voice trigger failed:', err);
+            voiceOn = false;
+            updateVoiceTriggerUI('error');
+        }
+    }
+
+    if (voiceTriggerBtn) {
+        voiceTriggerBtn.addEventListener('click', toggleVoiceDetection);
+    } else if (voiceIndicator) {
+        voiceIndicator.addEventListener('click', toggleVoiceDetection);
     }
 
     // =========================================================================
@@ -612,6 +659,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (btnWelcomeStart) {
+        btnWelcomeStart.addEventListener('click', () => {
+            tempProfile = {
+                name: '',
+                dob: '',
+                blood_group: '',
+                area: ''
+            };
+            showWizardStep(1);
+        });
+    }
+
     if (btnStep1Back) {
         btnStep1Back.addEventListener('click', showWelcomeScreen);
     }
@@ -786,1699 +845,1703 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Mode B: Emergency SOS Button
-    btnSOS.addEventListener('click', async () => {
-        // Record time
-        const now = new Date();
-        triggerTimestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        statusTime.innerText = triggerTimestamp;
+    if (btnSOS) {
+        btnSOS.addEventListener('click', async () => {
+            const now = new Date();
+            triggerTimestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (statusTime) statusTime.innerText = triggerTimestamp;
+            currentMode = 'emergency';
+            setSiren(true); // start the siren immediately, don't wait for GPS
+            triggerSource = 'button';
+            executeEmergencySos();
+        });
+    }
 
-        currentMode = 'emergency';
-        setSiren(true); // start the siren immediately, don't wait for GPS
-        const source = triggerSource;
-        triggerSource = 'button';
-        if (btnBloodUnknown) {
-            btnBloodUnknown.addEventListener('click', () => {
-                const val = btnBloodUnknown.getAttribute('data-value');
-                selectBloodChip(val);
-            });
-        }
+    if (btnBloodUnknown) {
+        btnBloodUnknown.addEventListener('click', () => {
+            const val = btnBloodUnknown.getAttribute('data-value');
+            selectBloodChip(val);
+        });
+    }
 
-        if (btnStep3Back) {
-            btnStep3Back.addEventListener('click', () => showWizardStep(2));
-        }
+    if (btnStep3Back) {
+        btnStep3Back.addEventListener('click', () => showWizardStep(2));
+    }
 
-        if (btnStep3Next) {
-            btnStep3Next.addEventListener('click', () => {
-                const val = onboardBloodGroupVal ? onboardBloodGroupVal.value : '';
-                if (!val) {
-                    showFieldError('blood', 'Please select a blood group or choose "Don\'t know". / कृपया ब्लड ग्रुप चुनें या "पता नहीं" पर क्लिक करें।');
-                    btnStep3Next.disabled = true;
-                    return;
-                }
-                tempProfile.blood_group = val;
-                showWizardStep(4);
-            });
-        }
-
-        // Step 4 Validation & Geolocation Fetch
-        function validateStep4() {
-            if (!onboardArea || !btnStep4Next) return;
-            const val = onboardArea.value ? onboardArea.value.trim() : '';
-            const valid = val.length >= 2;
-            btnStep4Next.disabled = !valid;
-
-            if (valid) {
-                onboardArea.classList.remove('input-error');
-                clearFieldError('area');
+    if (btnStep3Next) {
+        btnStep3Next.addEventListener('click', () => {
+            const val = onboardBloodGroupVal ? onboardBloodGroupVal.value : '';
+            if (!val) {
+                showFieldError('blood', 'Please select a blood group or choose "Don\'t know". / कृपया ब्लड ग्रुप चुनें या "पता नहीं" पर क्लिक करें।');
+                btnStep3Next.disabled = true;
+                return;
             }
-        }
+            tempProfile.blood_group = val;
+            showWizardStep(4);
+        });
+    }
 
-        if (onboardArea) {
-            onboardArea.addEventListener('input', validateStep4);
-            onboardArea.addEventListener('change', validateStep4);
-            onboardArea.addEventListener('blur', () => {
-                const val = onboardArea.value ? onboardArea.value.trim() : '';
-                if (val.length === 0) {
-                    onboardArea.classList.add('input-error');
-                    showFieldError('area', 'Please enter your local area or pincode / कृपया अपना इलाका या पिनकोड दर्ज करें।');
-                }
-            });
-        }
+    // Step 4 Validation & Geolocation Fetch
+    function validateStep4() {
+        if (!onboardArea || !btnStep4Next) return;
+        const val = onboardArea.value ? onboardArea.value.trim() : '';
+        const valid = val.length >= 2;
+        btnStep4Next.disabled = !valid;
 
-        if (btnStep4Gps) {
-            btnStep4Gps.addEventListener('click', async () => {
-                btnStep4Gps.disabled = true;
-                btnStep4Gps.innerHTML = `
-                <div class="btn-fetch-content">
-                    <span class="btn-fetch-main">📍 Acquiring Location...</span>
-                    <span class="btn-fetch-sub">स्थान खोज रहे हैं...</span>
-                </div>
-            `;
-                try {
-                    const loc = await getUserLocation(5000);
-                    if (loc && loc.lat && loc.lon) {
-                        onboardArea.value = `GPS: ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}`;
-                        hideAreaHint();
-                        clearFieldError('area');
-                        onboardArea.classList.remove('input-error');
-                    } else {
-                        showAreaHint('Location unavailable. Please type your area manually / स्थान उपलब्ध नहीं है। कृपया मैन्युअल रूप से टाइप करें।');
-                        onboardArea.focus();
-                    }
-                } catch (e) {
-                    console.warn('GPS retrieval error:', e);
+        if (valid) {
+            onboardArea.classList.remove('input-error');
+            clearFieldError('area');
+        }
+    }
+
+    if (onboardArea) {
+        onboardArea.addEventListener('input', validateStep4);
+        onboardArea.addEventListener('change', validateStep4);
+        onboardArea.addEventListener('blur', () => {
+            const val = onboardArea.value ? onboardArea.value.trim() : '';
+            if (val.length === 0) {
+                onboardArea.classList.add('input-error');
+                showFieldError('area', 'Please enter your local area or pincode / कृपया अपना इलाका या पिनकोड दर्ज करें।');
+            }
+        });
+    }
+
+    if (btnStep4Gps) {
+        btnStep4Gps.addEventListener('click', async () => {
+            btnStep4Gps.disabled = true;
+            btnStep4Gps.innerHTML = `
+            <div class="btn-fetch-content">
+                <span class="btn-fetch-main">📍 Acquiring Location...</span>
+                <span class="btn-fetch-sub">स्थान खोज रहे हैं...</span>
+            </div>
+        `;
+            try {
+                const loc = await getUserLocation(5000);
+                if (loc && loc.lat && loc.lon) {
+                    onboardArea.value = `GPS: ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}`;
+                    hideAreaHint();
+                    clearFieldError('area');
+                    onboardArea.classList.remove('input-error');
+                } else {
                     showAreaHint('Location unavailable. Please type your area manually / स्थान उपलब्ध नहीं है। कृपया मैन्युअल रूप से टाइप करें।');
                     onboardArea.focus();
-                } finally {
-                    btnStep4Gps.disabled = false;
-                    btnStep4Gps.innerHTML = `
-                    <div class="btn-fetch-content">
-                        <span class="btn-fetch-main">📍 Use Current Location</span>
-                        <span class="btn-fetch-sub">वर्तमान स्थान का उपयोग करें</span>
+                }
+            } catch (e) {
+                console.warn('GPS retrieval error:', e);
+                showAreaHint('Location unavailable. Please type your area manually / स्थान उपलब्ध नहीं है। कृपया मैन्युअल रूप से टाइप करें।');
+                onboardArea.focus();
+            } finally {
+                btnStep4Gps.disabled = false;
+                btnStep4Gps.innerHTML = `
+                <div class="btn-fetch-content">
+                    <span class="btn-fetch-main">📍 Use Current Location</span>
+                    <span class="btn-fetch-sub">वर्तमान स्थान का उपयोग करें</span>
+                </div>
+            `;
+                validateStep4();
+            }
+        });
+    }
+
+    if (btnStep4Back) {
+        btnStep4Back.addEventListener('click', () => showWizardStep(3));
+    }
+
+    if (btnStep4Next) {
+        btnStep4Next.addEventListener('click', () => {
+            const val = onboardArea.value ? onboardArea.value.trim() : '';
+            if (val.length < 2) {
+                validateStep4();
+                btnStep4Next.disabled = true;
+                return;
+            }
+            tempProfile.area = val;
+            showWizardStep(5);
+        });
+    }
+
+    // =========================================================================
+    // FIELD VALIDATION HELPERS (R2)
+    // =========================================================================
+    function validateName(name) {
+        if (!name || !name.trim()) {
+            return { valid: false, message: 'Full Name is required / पूरा नाम आवश्यक है' };
+        }
+        if (name.trim().length < 2) {
+            return { valid: false, message: 'Name must be at least 2 characters / नाम कम से कम 2 अक्षरों का होना चाहिए' };
+        }
+        return { valid: true, message: '' };
+    }
+
+    function validatePhone(phone) {
+        if (!phone || !phone.trim()) {
+            return { valid: false, message: 'Phone number is required / फ़ोन नंबर आवश्यक है' };
+        }
+        const trimmed = phone.trim();
+        const stripped = trimmed.replace(/[\s\-]/g, '');
+        // Must be strictly 10 digits, or +country_code (1-4 digits) followed by 10 digits
+        const phoneRegex = /^(?:\+\d{1,4})?[0-9]{10}$/;
+        if (!phoneRegex.test(stripped)) {
+            return { valid: false, message: 'Valid 10-digit number required (optional country code e.g. +91) / 10 अंकों का मान्य फ़ोन नंबर दर्ज करें' };
+        }
+        return { valid: true, message: '' };
+    }
+
+    function validateTelegramId(tgId) {
+        if (!tgId || !tgId.trim()) {
+            return { valid: false, message: 'Telegram Chat ID is required / टेलीग्राम चैट आईडी आवश्यक है' };
+        }
+        const trimmed = tgId.trim();
+        // Strictly 9 to 14 numeric digits: ^\d{9,14}$
+        const tgRegex = /^\d{9,14}$/;
+        if (!tgRegex.test(trimmed)) {
+            return { valid: false, message: 'Telegram Chat ID must be strictly 9 to 14 numeric digits / टेलीग्राम चैट आईडी में केवल 9 से 14 अंक होने चाहिए' };
+        }
+        return { valid: true, message: '' };
+    }
+
+    function setInputValidationState(inputEl, errorEl, validationResult) {
+        if (!inputEl) return;
+        if (!validationResult.valid) {
+            inputEl.classList.add('input-error');
+            if (errorEl) {
+                errorEl.innerText = validationResult.message;
+                errorEl.classList.add('visible');
+            }
+        } else {
+            inputEl.classList.remove('input-error');
+            if (errorEl) {
+                errorEl.innerText = '';
+                errorEl.classList.remove('visible');
+            }
+        }
+    }
+
+    function hideAllValidationErrors() {
+        [contactName, contactPhone, contactTelegram, modalContactName, modalContactPhone, modalContactTelegram].forEach(el => {
+            if (el) el.classList.remove('input-error');
+        });
+        [errContactName, errContactPhone, errContactTelegram, errModalContactName, errModalContactPhone, errModalContactTelegram].forEach(el => {
+            if (el) {
+                el.innerText = '';
+                el.classList.remove('visible');
+            }
+        });
+    }
+
+    // Step 5 Validation
+    function validateStep5() {
+        if (!contactName || !contactPhone || !contactTelegram || !btnAddEmergencyContact) return false;
+        const nameRes = validateName(contactName.value);
+        const phoneRes = validatePhone(contactPhone.value);
+        const tgRes = validateTelegramId(contactTelegram.value);
+        const valid = nameRes.valid && phoneRes.valid && tgRes.valid;
+        btnAddEmergencyContact.disabled = !valid;
+        return valid;
+    }
+
+    if (contactName) {
+        contactName.addEventListener('input', () => {
+            validateStep5();
+            if (contactName.classList.contains('input-error')) {
+                setInputValidationState(contactName, errContactName, validateName(contactName.value));
+            }
+        });
+        contactName.addEventListener('blur', () => {
+            if (contactName.value.trim().length > 0) {
+                setInputValidationState(contactName, errContactName, validateName(contactName.value));
+            }
+        });
+    }
+
+    if (contactPhone) {
+        contactPhone.addEventListener('input', () => {
+            validateStep5();
+            if (contactPhone.classList.contains('input-error')) {
+                setInputValidationState(contactPhone, errContactPhone, validatePhone(contactPhone.value));
+            }
+        });
+        contactPhone.addEventListener('blur', () => {
+            if (contactPhone.value.trim().length > 0) {
+                setInputValidationState(contactPhone, errContactPhone, validatePhone(contactPhone.value));
+            }
+        });
+    }
+
+    if (contactTelegram) {
+        contactTelegram.addEventListener('input', () => {
+            validateStep5();
+            if (contactTelegram.classList.contains('input-error')) {
+                setInputValidationState(contactTelegram, errContactTelegram, validateTelegramId(contactTelegram.value));
+            }
+        });
+        contactTelegram.addEventListener('blur', () => {
+            if (contactTelegram.value.trim().length > 0) {
+                setInputValidationState(contactTelegram, errContactTelegram, validateTelegramId(contactTelegram.value));
+            }
+        });
+    }
+
+    if (btnStep5Back) {
+        btnStep5Back.addEventListener('click', () => showWizardStep(4));
+    }
+
+    // Step 5 Submission & Loop Trigger
+    if (btnAddEmergencyContact) {
+        btnAddEmergencyContact.addEventListener('click', async () => {
+            const name = contactName.value.trim();
+            const phone = contactPhone.value.trim();
+            const telegram_chat_id = contactTelegram.value.trim();
+            const relationship = contactRelationship ? contactRelationship.value : 'Friend';
+
+            const nameRes = validateName(name);
+            const phoneRes = validatePhone(phone);
+            const tgRes = validateTelegramId(telegram_chat_id);
+
+            setInputValidationState(contactName, errContactName, nameRes);
+            setInputValidationState(contactPhone, errContactPhone, phoneRes);
+            setInputValidationState(contactTelegram, errContactTelegram, tgRes);
+
+            if (!nameRes.valid || !phoneRes.valid || !tgRes.valid) {
+                const firstError = (!nameRes.valid ? nameRes.message : (!phoneRes.valid ? phoneRes.message : tgRes.message));
+                alert(`Validation Error: ${firstError}`);
+                return;
+            }
+
+            btnAddEmergencyContact.disabled = true;
+            btnAddEmergencyContact.innerHTML = '<span>Adding... / जोड़ा जा रहा है...</span>';
+
+            try {
+                const response = await fetch('/api/contacts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, telegram_chat_id, relationship })
+                });
+
+                if (response.ok) {
+                    await loadContacts();
+                    openModal(modalContactSuccess);
+                } else {
+                    const err = await response.json();
+                    alert(`Failed to add contact: ${err.detail || 'Please verify details'}`);
+                }
+            } catch (error) {
+                console.error('Error adding emergency contact:', error);
+                alert('Network error while adding contact. Please try again.');
+            } finally {
+                btnAddEmergencyContact.innerHTML = '<span>+ Add Emergency Contact / + आपातकालीन संपर्क जोड़ें</span>';
+                validateStep5();
+            }
+        });
+    }
+
+    // =========================================================================
+    // MODAL HELPERS & TELEGRAM GUIDE (R5)
+    // =========================================================================
+    function openModal(modalEl) {
+        if (modalEl) modalEl.classList.remove('hidden');
+    }
+
+    function closeModal(modalEl) {
+        if (modalEl) modalEl.classList.add('hidden');
+    }
+
+    // Telegram Guide (Helper Modal: @userinfobot)
+    if (btnOpenTelegramHelp) {
+        btnOpenTelegramHelp.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(modalTelegramGuide);
+        });
+    }
+
+    if (btnDrawerTelegramHelp) {
+        btnDrawerTelegramHelp.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(modalTelegramGuide);
+        });
+    }
+
+    if (btnCloseTelegramGuide) {
+        btnCloseTelegramGuide.addEventListener('click', () => closeModal(modalTelegramGuide));
+    }
+
+    if (btnTgDismiss) {
+        btnTgDismiss.addEventListener('click', () => closeModal(modalTelegramGuide));
+    }
+
+    if (btnTgOpenBot) {
+        btnTgOpenBot.addEventListener('click', () => {
+            window.open('https://t.me/userinfobot', '_blank');
+        });
+    }
+
+    // =========================================================================
+    // INFINITE CONTACT LOOP MODAL & NAVIGATION (R3, R4, R5)
+    // =========================================================================
+    function enterContactLoopMode() {
+        closeModal(modalContactSuccess);
+
+        // Reset Step 5 inputs
+        if (contactName) contactName.value = '';
+        if (contactPhone) contactPhone.value = '';
+        if (contactTelegram) contactTelegram.value = '';
+        if (contactRelationship) contactRelationship.value = 'Friend';
+        if (btnAddEmergencyContact) btnAddEmergencyContact.disabled = true;
+
+        // Reset Modal Contact inputs
+        if (modalContactId) modalContactId.value = '';
+        if (modalContactName) modalContactName.value = '';
+        if (modalContactPhone) modalContactPhone.value = '';
+        if (modalContactTelegram) modalContactTelegram.value = '';
+        if (modalContactRelationship) modalContactRelationship.value = 'Friend';
+
+        hideAllValidationErrors();
+
+        // Check if user is currently onboarding or in main dashboard
+        const isOnboarded = localStorage.getItem(ONBOARDED_KEY);
+        if (!isOnboarded) {
+            // In onboarding flow: show Step 5 in loop mode
+            if (btnStep5Back) btnStep5Back.classList.add('hidden');
+            const step5ProgressHeader = document.getElementById('step5-progress-header');
+            if (step5ProgressHeader) step5ProgressHeader.classList.add('hidden');
+            if (btnContactLoopSkip) btnContactLoopSkip.classList.remove('hidden');
+            showWizardStep(5);
+        } else {
+            // In post-onboarding flow: show modalContactForm in loop mode
+            if (modalContactFormTitle) {
+                modalContactFormTitle.innerHTML = 'Add Emergency Contact<br><span class="title-hindi">आपातकालीन संपर्क जोड़ें</span>';
+            }
+            if (btnModalContactSubmitText) {
+                btnModalContactSubmitText.innerHTML = '+ Add Emergency Contact<br><span class="btn-subtext-hindi">+ आपातकालीन संपर्क जोड़ें</span>';
+            }
+            if (btnModalLoopSkip) btnModalLoopSkip.classList.remove('hidden');
+            if (btnCloseContactModal) btnCloseContactModal.classList.add('hidden');
+            openModal(modalContactForm);
+        }
+    }
+
+    function handleLoopSkipToDashboard() {
+        // Discard any partially typed unsubmitted loop inputs
+        if (contactName) contactName.value = '';
+        if (contactPhone) contactPhone.value = '';
+        if (contactTelegram) contactTelegram.value = '';
+        if (modalContactName) modalContactName.value = '';
+        if (modalContactPhone) modalContactPhone.value = '';
+        if (modalContactTelegram) modalContactTelegram.value = '';
+        hideAllValidationErrors();
+
+        // Mark onboarding complete if skipped during onboarding loop
+        saveUserProfile(tempProfile);
+        localStorage.setItem(ONBOARDED_KEY, 'true');
+
+        // Close any modals
+        closeModal(modalContactSuccess);
+        closeModal(modalContactForm);
+        closeModal(modalTelegramGuide);
+        closeModal(modalTelegramActivation);
+
+        // Reset loop header UI state
+        if (btnStep5Back) btnStep5Back.classList.remove('hidden');
+        const step5ProgressHeader = document.getElementById('step5-progress-header');
+        if (step5ProgressHeader) step5ProgressHeader.classList.remove('hidden');
+        if (btnContactLoopSkip) btnContactLoopSkip.classList.add('hidden');
+        if (btnModalLoopSkip) btnModalLoopSkip.classList.add('hidden');
+        if (btnCloseContactModal) btnCloseContactModal.classList.remove('hidden');
+
+        // User Refinement 2: Return cleanly to Home Dashboard (#screen-dashboard)
+        showDashboardScreen();
+    }
+
+    function handleLoopFinish() {
+        saveUserProfile(tempProfile);
+        localStorage.setItem(ONBOARDED_KEY, 'true');
+        closeModal(modalContactSuccess);
+
+        // Requirement R5: Transition to #modal-telegram-activation
+        openModal(modalTelegramActivation);
+    }
+
+    if (btnLoopAddMore) {
+        btnLoopAddMore.addEventListener('click', enterContactLoopMode);
+    }
+
+    if (btnLoopFinish) {
+        btnLoopFinish.addEventListener('click', handleLoopFinish);
+    }
+
+    if (btnLoopCancel) {
+        btnLoopCancel.addEventListener('click', handleLoopFinish);
+    }
+
+    if (btnLoopSkip) {
+        btnLoopSkip.addEventListener('click', handleLoopFinish);
+    }
+
+    if (btnContactLoopSkip) {
+        btnContactLoopSkip.addEventListener('click', handleLoopSkipToDashboard);
+    }
+
+    if (btnModalLoopSkip) {
+        btnModalLoopSkip.addEventListener('click', handleLoopSkipToDashboard);
+    }
+
+    // Telegram Activation Modal Handlers (R5)
+    if (btnCloseTelegramActivation) {
+        btnCloseTelegramActivation.addEventListener('click', () => {
+            closeModal(modalTelegramActivation);
+            showDashboardScreen();
+        });
+    }
+
+    if (btnTgActivationSkip) {
+        btnTgActivationSkip.addEventListener('click', () => {
+            closeModal(modalTelegramActivation);
+            showDashboardScreen();
+        });
+    }
+
+    if (btnTgActivateBot) {
+        btnTgActivateBot.addEventListener('click', () => {
+            // Direct link to @RakshaSakhi_Alert_Bot
+            window.open('https://t.me/RakshaSakhi_Alert_Bot', '_blank');
+        });
+    }
+
+    if (btnMakeIdActive) {
+        btnMakeIdActive.addEventListener('click', () => {
+            openModal(modalTelegramActivation);
+        });
+    }
+
+    // =========================================================================
+    // CONTACTS LIST & DRAWER MANAGEMENT
+    // =========================================================================
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
+    let cachedContacts = [];
+
+    async function loadContacts() {
+        try {
+            const res = await fetch('/api/contacts');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const contacts = await res.json();
+            cachedContacts = contacts;
+
+            const count = contacts.length;
+            if (badgeContactsCount) badgeContactsCount.innerText = count;
+            if (contactsCount) contactsCount.innerText = count;
+
+            // 1. Render Dedicated Screen Contacts List (#full-contacts-list) matching contact_main_page.png
+            if (fullContactsList) {
+                fullContactsList.innerHTML = '';
+                if (count === 0) {
+                    fullContactsList.innerHTML = `
+                    <div class="contacts-empty-box" style="text-align: center; padding: 30px 20px; color: #8e95a5;">
+                        <p style="font-size: 15px; font-weight: 600; color: #fff;">No emergency contacts saved yet.</p>
+                        <p style="font-size: 12px; margin-top: 6px;">Add contacts below to alert them via Telegram with live GPS.</p>
                     </div>
                 `;
-                    validateStep4();
-                }
-            });
-        }
+                } else {
+                    contacts.forEach(contact => {
+                        const card = document.createElement('div');
+                        card.className = 'contact-card-modern';
 
-        if (btnStep4Back) {
-            btnStep4Back.addEventListener('click', () => showWizardStep(3));
-        }
+                        const rel = contact.relationship || 'Friend';
+                        let avatarIcon = '👤';
+                        const lowerRel = rel.toLowerCase();
+                        const lowerName = (contact.name || '').toLowerCase();
+                        if (lowerRel.includes('father') || lowerRel.includes('papa') || lowerRel.includes('brother') || lowerName.includes('papa')) {
+                            avatarIcon = '👨';
+                        } else if (lowerRel.includes('mother') || lowerRel.includes('mom') || lowerRel.includes('sister') || lowerName.includes('priya')) {
+                            avatarIcon = '👩';
+                        }
 
-        if (btnStep4Next) {
-            btnStep4Next.addEventListener('click', () => {
-                const val = onboardArea.value ? onboardArea.value.trim() : '';
-                if (val.length < 2) {
-                    validateStep4();
-                    btnStep4Next.disabled = true;
-                    return;
-                }
-                tempProfile.area = val;
-                showWizardStep(5);
-            });
-        }
-
-        // =========================================================================
-        // FIELD VALIDATION HELPERS (R2)
-        // =========================================================================
-        function validateName(name) {
-            if (!name || !name.trim()) {
-                return { valid: false, message: 'Full Name is required / पूरा नाम आवश्यक है' };
-            }
-            if (name.trim().length < 2) {
-                return { valid: false, message: 'Name must be at least 2 characters / नाम कम से कम 2 अक्षरों का होना चाहिए' };
-            }
-            return { valid: true, message: '' };
-        }
-
-        function validatePhone(phone) {
-            if (!phone || !phone.trim()) {
-                return { valid: false, message: 'Phone number is required / फ़ोन नंबर आवश्यक है' };
-            }
-            const trimmed = phone.trim();
-            const stripped = trimmed.replace(/[\s\-]/g, '');
-            // Must be strictly 10 digits, or +country_code (1-4 digits) followed by 10 digits
-            const phoneRegex = /^(?:\+\d{1,4})?[0-9]{10}$/;
-            if (!phoneRegex.test(stripped)) {
-                return { valid: false, message: 'Valid 10-digit number required (optional country code e.g. +91) / 10 अंकों का मान्य फ़ोन नंबर दर्ज करें' };
-            }
-            return { valid: true, message: '' };
-        }
-
-        function validateTelegramId(tgId) {
-            if (!tgId || !tgId.trim()) {
-                return { valid: false, message: 'Telegram Chat ID is required / टेलीग्राम चैट आईडी आवश्यक है' };
-            }
-            const trimmed = tgId.trim();
-            // Strictly 9 to 14 numeric digits: ^\d{9,14}$
-            const tgRegex = /^\d{9,14}$/;
-            if (!tgRegex.test(trimmed)) {
-                return { valid: false, message: 'Telegram Chat ID must be strictly 9 to 14 numeric digits / टेलीग्राम चैट आईडी में केवल 9 से 14 अंक होने चाहिए' };
-            }
-            return { valid: true, message: '' };
-        }
-
-        function setInputValidationState(inputEl, errorEl, validationResult) {
-            if (!inputEl) return;
-            if (!validationResult.valid) {
-                inputEl.classList.add('input-error');
-                if (errorEl) {
-                    errorEl.innerText = validationResult.message;
-                    errorEl.classList.add('visible');
-                }
-            } else {
-                inputEl.classList.remove('input-error');
-                if (errorEl) {
-                    errorEl.innerText = '';
-                    errorEl.classList.remove('visible');
-                }
-            }
-        }
-
-        function hideAllValidationErrors() {
-            [contactName, contactPhone, contactTelegram, modalContactName, modalContactPhone, modalContactTelegram].forEach(el => {
-                if (el) el.classList.remove('input-error');
-            });
-            [errContactName, errContactPhone, errContactTelegram, errModalContactName, errModalContactPhone, errModalContactTelegram].forEach(el => {
-                if (el) {
-                    el.innerText = '';
-                    el.classList.remove('visible');
-                }
-            });
-        }
-
-        // Step 5 Validation
-        function validateStep5() {
-            if (!contactName || !contactPhone || !contactTelegram || !btnAddEmergencyContact) return false;
-            const nameRes = validateName(contactName.value);
-            const phoneRes = validatePhone(contactPhone.value);
-            const tgRes = validateTelegramId(contactTelegram.value);
-            const valid = nameRes.valid && phoneRes.valid && tgRes.valid;
-            btnAddEmergencyContact.disabled = !valid;
-            return valid;
-        }
-
-        if (contactName) {
-            contactName.addEventListener('input', () => {
-                validateStep5();
-                if (contactName.classList.contains('input-error')) {
-                    setInputValidationState(contactName, errContactName, validateName(contactName.value));
-                }
-            });
-            contactName.addEventListener('blur', () => {
-                if (contactName.value.trim().length > 0) {
-                    setInputValidationState(contactName, errContactName, validateName(contactName.value));
-                }
-            });
-        }
-
-        if (contactPhone) {
-            contactPhone.addEventListener('input', () => {
-                validateStep5();
-                if (contactPhone.classList.contains('input-error')) {
-                    setInputValidationState(contactPhone, errContactPhone, validatePhone(contactPhone.value));
-                }
-            });
-            contactPhone.addEventListener('blur', () => {
-                if (contactPhone.value.trim().length > 0) {
-                    setInputValidationState(contactPhone, errContactPhone, validatePhone(contactPhone.value));
-                }
-            });
-        }
-
-        if (contactTelegram) {
-            contactTelegram.addEventListener('input', () => {
-                validateStep5();
-                if (contactTelegram.classList.contains('input-error')) {
-                    setInputValidationState(contactTelegram, errContactTelegram, validateTelegramId(contactTelegram.value));
-                }
-            });
-            contactTelegram.addEventListener('blur', () => {
-                if (contactTelegram.value.trim().length > 0) {
-                    setInputValidationState(contactTelegram, errContactTelegram, validateTelegramId(contactTelegram.value));
-                }
-            });
-        }
-
-        if (btnStep5Back) {
-            btnStep5Back.addEventListener('click', () => showWizardStep(4));
-        }
-
-        // Step 5 Submission & Loop Trigger
-        if (btnAddEmergencyContact) {
-            btnAddEmergencyContact.addEventListener('click', async () => {
-                const name = contactName.value.trim();
-                const phone = contactPhone.value.trim();
-                const telegram_chat_id = contactTelegram.value.trim();
-                const relationship = contactRelationship ? contactRelationship.value : 'Friend';
-
-                const nameRes = validateName(name);
-                const phoneRes = validatePhone(phone);
-                const tgRes = validateTelegramId(telegram_chat_id);
-
-                setInputValidationState(contactName, errContactName, nameRes);
-                setInputValidationState(contactPhone, errContactPhone, phoneRes);
-                setInputValidationState(contactTelegram, errContactTelegram, tgRes);
-
-                if (!nameRes.valid || !phoneRes.valid || !tgRes.valid) {
-                    const firstError = (!nameRes.valid ? nameRes.message : (!phoneRes.valid ? phoneRes.message : tgRes.message));
-                    alert(`Validation Error: ${firstError}`);
-                    return;
-                }
-
-                btnAddEmergencyContact.disabled = true;
-                btnAddEmergencyContact.innerHTML = '<span>Adding... / जोड़ा जा रहा है...</span>';
-
-                try {
-                    const response = await fetch('/api/contacts', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, phone, telegram_chat_id, relationship })
-                    });
-
-                    if (response.ok) {
-                        await loadContacts();
-                        openModal(modalContactSuccess);
-                    } else {
-                        const err = await response.json();
-                        alert(`Failed to add contact: ${err.detail || 'Please verify details'}`);
-                    }
-                } catch (error) {
-                    console.error('Error adding emergency contact:', error);
-                    alert('Network error while adding contact. Please try again.');
-                } finally {
-                    btnAddEmergencyContact.innerHTML = '<span>+ Add Emergency Contact / + आपातकालीन संपर्क जोड़ें</span>';
-                    validateStep5();
-                }
-            });
-        }
-
-        // =========================================================================
-        // MODAL HELPERS & TELEGRAM GUIDE (R5)
-        // =========================================================================
-        function openModal(modalEl) {
-            if (modalEl) modalEl.classList.remove('hidden');
-        }
-
-        function closeModal(modalEl) {
-            if (modalEl) modalEl.classList.add('hidden');
-        }
-
-        // Telegram Guide (Helper Modal: @userinfobot)
-        if (btnOpenTelegramHelp) {
-            btnOpenTelegramHelp.addEventListener('click', (e) => {
-                e.preventDefault();
-                openModal(modalTelegramGuide);
-            });
-        }
-
-        if (btnDrawerTelegramHelp) {
-            btnDrawerTelegramHelp.addEventListener('click', (e) => {
-                e.preventDefault();
-                openModal(modalTelegramGuide);
-            });
-        }
-
-        if (btnCloseTelegramGuide) {
-            btnCloseTelegramGuide.addEventListener('click', () => closeModal(modalTelegramGuide));
-        }
-
-        if (btnTgDismiss) {
-            btnTgDismiss.addEventListener('click', () => closeModal(modalTelegramGuide));
-        }
-
-        if (btnTgOpenBot) {
-            btnTgOpenBot.addEventListener('click', () => {
-                window.open('https://t.me/userinfobot', '_blank');
-            });
-        }
-
-        // =========================================================================
-        // INFINITE CONTACT LOOP MODAL & NAVIGATION (R3, R4, R5)
-        // =========================================================================
-        function enterContactLoopMode() {
-            closeModal(modalContactSuccess);
-
-            // Reset Step 5 inputs
-            if (contactName) contactName.value = '';
-            if (contactPhone) contactPhone.value = '';
-            if (contactTelegram) contactTelegram.value = '';
-            if (contactRelationship) contactRelationship.value = 'Friend';
-            if (btnAddEmergencyContact) btnAddEmergencyContact.disabled = true;
-
-            // Reset Modal Contact inputs
-            if (modalContactId) modalContactId.value = '';
-            if (modalContactName) modalContactName.value = '';
-            if (modalContactPhone) modalContactPhone.value = '';
-            if (modalContactTelegram) modalContactTelegram.value = '';
-            if (modalContactRelationship) modalContactRelationship.value = 'Friend';
-
-            hideAllValidationErrors();
-
-            // Check if user is currently onboarding or in main dashboard
-            const isOnboarded = localStorage.getItem(ONBOARDED_KEY);
-            if (!isOnboarded) {
-                // In onboarding flow: show Step 5 in loop mode
-                if (btnStep5Back) btnStep5Back.classList.add('hidden');
-                const step5ProgressHeader = document.getElementById('step5-progress-header');
-                if (step5ProgressHeader) step5ProgressHeader.classList.add('hidden');
-                if (btnContactLoopSkip) btnContactLoopSkip.classList.remove('hidden');
-                showWizardStep(5);
-            } else {
-                // In post-onboarding flow: show modalContactForm in loop mode
-                if (modalContactFormTitle) {
-                    modalContactFormTitle.innerHTML = 'Add Emergency Contact<br><span class="title-hindi">आपातकालीन संपर्क जोड़ें</span>';
-                }
-                if (btnModalContactSubmitText) {
-                    btnModalContactSubmitText.innerHTML = '+ Add Emergency Contact<br><span class="btn-subtext-hindi">+ आपातकालीन संपर्क जोड़ें</span>';
-                }
-                if (btnModalLoopSkip) btnModalLoopSkip.classList.remove('hidden');
-                if (btnCloseContactModal) btnCloseContactModal.classList.add('hidden');
-                openModal(modalContactForm);
-            }
-        }
-
-        function handleLoopSkipToDashboard() {
-            // Discard any partially typed unsubmitted loop inputs
-            if (contactName) contactName.value = '';
-            if (contactPhone) contactPhone.value = '';
-            if (contactTelegram) contactTelegram.value = '';
-            if (modalContactName) modalContactName.value = '';
-            if (modalContactPhone) modalContactPhone.value = '';
-            if (modalContactTelegram) modalContactTelegram.value = '';
-            hideAllValidationErrors();
-
-            // Mark onboarding complete if skipped during onboarding loop
-            saveUserProfile(tempProfile);
-            localStorage.setItem(ONBOARDED_KEY, 'true');
-
-            // Close any modals
-            closeModal(modalContactSuccess);
-            closeModal(modalContactForm);
-            closeModal(modalTelegramGuide);
-            closeModal(modalTelegramActivation);
-
-            // Reset loop header UI state
-            if (btnStep5Back) btnStep5Back.classList.remove('hidden');
-            const step5ProgressHeader = document.getElementById('step5-progress-header');
-            if (step5ProgressHeader) step5ProgressHeader.classList.remove('hidden');
-            if (btnContactLoopSkip) btnContactLoopSkip.classList.add('hidden');
-            if (btnModalLoopSkip) btnModalLoopSkip.classList.add('hidden');
-            if (btnCloseContactModal) btnCloseContactModal.classList.remove('hidden');
-
-            // User Refinement 2: Return cleanly to Home Dashboard (#screen-dashboard)
-            showDashboardScreen();
-        }
-
-        function handleLoopFinish() {
-            saveUserProfile(tempProfile);
-            localStorage.setItem(ONBOARDED_KEY, 'true');
-            closeModal(modalContactSuccess);
-
-            // Requirement R5: Transition to #modal-telegram-activation
-            openModal(modalTelegramActivation);
-        }
-
-        if (btnLoopAddMore) {
-            btnLoopAddMore.addEventListener('click', enterContactLoopMode);
-        }
-
-        if (btnLoopFinish) {
-            btnLoopFinish.addEventListener('click', handleLoopFinish);
-        }
-
-        if (btnLoopCancel) {
-            btnLoopCancel.addEventListener('click', handleLoopFinish);
-        }
-
-        if (btnLoopSkip) {
-            btnLoopSkip.addEventListener('click', handleLoopFinish);
-        }
-
-        if (btnContactLoopSkip) {
-            btnContactLoopSkip.addEventListener('click', handleLoopSkipToDashboard);
-        }
-
-        if (btnModalLoopSkip) {
-            btnModalLoopSkip.addEventListener('click', handleLoopSkipToDashboard);
-        }
-
-        // Telegram Activation Modal Handlers (R5)
-        if (btnCloseTelegramActivation) {
-            btnCloseTelegramActivation.addEventListener('click', () => {
-                closeModal(modalTelegramActivation);
-                showDashboardScreen();
-            });
-        }
-
-        if (btnTgActivationSkip) {
-            btnTgActivationSkip.addEventListener('click', () => {
-                closeModal(modalTelegramActivation);
-                showDashboardScreen();
-            });
-        }
-
-        if (btnTgActivateBot) {
-            btnTgActivateBot.addEventListener('click', () => {
-                // Direct link to @RakshaSakhi_Alert_Bot
-                window.open('https://t.me/RakshaSakhi_Alert_Bot', '_blank');
-            });
-        }
-
-        if (btnMakeIdActive) {
-            btnMakeIdActive.addEventListener('click', () => {
-                openModal(modalTelegramActivation);
-            });
-        }
-
-        // =========================================================================
-        // CONTACTS LIST & DRAWER MANAGEMENT
-        // =========================================================================
-        function escapeHtml(text) {
-            if (!text) return '';
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return String(text).replace(/[&<>"']/g, m => map[m]);
-        }
-
-        let cachedContacts = [];
-
-        async function loadContacts() {
-            try {
-                const res = await fetch('/api/contacts');
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const contacts = await res.json();
-                cachedContacts = contacts;
-
-                const count = contacts.length;
-                if (badgeContactsCount) badgeContactsCount.innerText = count;
-                if (contactsCount) contactsCount.innerText = count;
-
-                // 1. Render Dedicated Screen Contacts List (#full-contacts-list) matching contact_main_page.png
-                if (fullContactsList) {
-                    fullContactsList.innerHTML = '';
-                    if (count === 0) {
-                        fullContactsList.innerHTML = `
-                        <div class="contacts-empty-box" style="text-align: center; padding: 30px 20px; color: #8e95a5;">
-                            <p style="font-size: 15px; font-weight: 600; color: #fff;">No emergency contacts saved yet.</p>
-                            <p style="font-size: 12px; margin-top: 6px;">Add contacts below to alert them via Telegram with live GPS.</p>
-                        </div>
-                    `;
-                    } else {
-                        contacts.forEach(contact => {
-                            const card = document.createElement('div');
-                            card.className = 'contact-card-modern';
-
-                            const rel = contact.relationship || 'Friend';
-                            let avatarIcon = '👤';
-                            const lowerRel = rel.toLowerCase();
-                            const lowerName = (contact.name || '').toLowerCase();
-                            if (lowerRel.includes('father') || lowerRel.includes('papa') || lowerRel.includes('brother') || lowerName.includes('papa')) {
-                                avatarIcon = '👨';
-                            } else if (lowerRel.includes('mother') || lowerRel.includes('mom') || lowerRel.includes('sister') || lowerName.includes('priya')) {
-                                avatarIcon = '👩';
-                            }
-
-                            card.innerHTML = `
-                            <div class="contact-card-top-row">
-                                <div class="contact-user-intro">
-                                    <div class="contact-avatar-silhouette">${avatarIcon}</div>
-                                    <div class="contact-title-group">
-                                        <span class="contact-name-txt">${escapeHtml(contact.name)}</span>
-                                        <span class="contact-rel-badge">${escapeHtml(rel)}</span>
-                                    </div>
-                                </div>
-                                <div class="contact-card-actions">
-                                    <button type="button" class="btn-card-edit" data-id="${contact.id}" title="Edit contact" aria-label="Edit contact">✏️</button>
-                                    <button type="button" class="btn-card-del" data-id="${contact.id}" title="Delete contact" aria-label="Delete contact">🗑️</button>
-                                </div>
-                            </div>
-                            <div class="contact-card-meta-row">
-                                <span>📞 e.g. ${escapeHtml(contact.phone)}</span>
-                            </div>
-                            <div class="contact-card-meta-row">
-                                <span>✈️ Telegram ID: ${escapeHtml(contact.telegram_chat_id || 'Not set')}</span>
-                            </div>
-                        `;
-
-                            const btnEdit = card.querySelector('.btn-card-edit');
-                            btnEdit.addEventListener('click', () => openEditContactModal(contact));
-
-                            const btnDel = card.querySelector('.btn-card-del');
-                            btnDel.addEventListener('click', () => deleteContact(contact.id));
-
-                            fullContactsList.appendChild(card);
-                        });
-                    }
-                }
-
-                // 2. Render Legacy Modal Contacts List (#contacts-list) for test compatibility
-                if (contactsList) {
-                    contactsList.innerHTML = '';
-                    if (count === 0) {
-                        contactsList.innerHTML = `
-                        <div class="contacts-empty-box">
-                            <p>No emergency contacts saved yet.</p>
-                            <p style="font-size: 11px; margin-top: 4px; opacity: 0.7;">Add contacts below to alert them via Telegram with live GPS.</p>
-                        </div>
-                    `;
-                    } else {
-                        contacts.forEach(contact => {
-                            const item = document.createElement('div');
-                            item.className = 'contact-card-item';
-                            const tgBadge = contact.telegram_chat_id
-                                ? `<span class="badge-tag tg">✈️ ${escapeHtml(contact.telegram_chat_id)}</span>`
-                                : `<span class="badge-tag">No TG</span>`;
-
-                            item.innerHTML = `
-                            <div class="contact-card-info">
-                                <strong>${escapeHtml(contact.name)}</strong>
-                                <span>📞 ${escapeHtml(contact.phone)}</span>
-                                <div class="contact-card-badges">
-                                    <span class="badge-tag">${escapeHtml(contact.relationship || 'Contact')}</span>
-                                    ${tgBadge}
+                        card.innerHTML = `
+                        <div class="contact-card-top-row">
+                            <div class="contact-user-intro">
+                                <div class="contact-avatar-silhouette">${avatarIcon}</div>
+                                <div class="contact-title-group">
+                                    <span class="contact-name-txt">${escapeHtml(contact.name)}</span>
+                                    <span class="contact-rel-badge">${escapeHtml(rel)}</span>
                                 </div>
                             </div>
                             <div class="contact-card-actions">
                                 <button type="button" class="btn-card-edit" data-id="${contact.id}" title="Edit contact" aria-label="Edit contact">✏️</button>
                                 <button type="button" class="btn-card-del" data-id="${contact.id}" title="Delete contact" aria-label="Delete contact">🗑️</button>
                             </div>
-                        `;
+                        </div>
+                        <div class="contact-card-meta-row">
+                            <span>📞 e.g. ${escapeHtml(contact.phone)}</span>
+                        </div>
+                        <div class="contact-card-meta-row">
+                            <span>✈️ Telegram ID: ${escapeHtml(contact.telegram_chat_id || 'Not set')}</span>
+                        </div>
+                    `;
 
-                            const btnEdit = item.querySelector('.btn-card-edit');
-                            if (btnEdit) btnEdit.addEventListener('click', () => openEditContactModal(contact));
+                        const btnEdit = card.querySelector('.btn-card-edit');
+                        btnEdit.addEventListener('click', () => openEditContactModal(contact));
 
-                            const btnDel = item.querySelector('.btn-card-del');
-                            btnDel.addEventListener('click', () => deleteContact(contact.id));
-                            contactsList.appendChild(item);
-                        });
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to load contacts:', err);
-            }
-        }
+                        const btnDel = card.querySelector('.btn-card-del');
+                        btnDel.addEventListener('click', () => deleteContact(contact.id));
 
-        async function deleteContact(id) {
-            if (!confirm('Are you sure you want to delete this emergency contact?')) return;
-            try {
-                const res = await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
-                if (res.ok) {
-                    await loadContacts();
-                } else {
-                    alert('Failed to delete contact.');
-                }
-            } catch (e) {
-                console.error('Error deleting contact:', e);
-            }
-        }
-
-        // Modal Contact Form Helpers (contact_page.png)
-        function openAddContactModal() {
-            if (modalContactId) modalContactId.value = '';
-            if (modalContactName) modalContactName.value = '';
-            if (modalContactPhone) modalContactPhone.value = '';
-            if (modalContactTelegram) modalContactTelegram.value = '';
-            if (modalContactRelationship) modalContactRelationship.value = 'Friend';
-            hideAllValidationErrors();
-            if (btnModalLoopSkip) btnModalLoopSkip.classList.add('hidden');
-            if (btnCloseContactModal) btnCloseContactModal.classList.remove('hidden');
-            if (modalContactFormTitle) {
-                modalContactFormTitle.innerHTML = 'Add Emergency Contact<br><span class="title-hindi">आपातकालीन संपर्क जोड़ें</span>';
-            }
-            if (modalContactFormDesc) {
-                modalContactFormDesc.innerHTML = 'Whom should we notify in an emergency?<br><span class="desc-hindi">आपातकाल में हम किसे सूचित करें?</span>';
-            }
-            if (btnModalContactSubmitText) {
-                btnModalContactSubmitText.innerHTML = '+ Add Emergency Contact<br><span class="btn-subtext-hindi">+ आपातकालीन संपर्क जोड़ें</span>';
-            }
-            openModal(modalContactForm);
-        }
-
-        function openEditContactModal(contact) {
-            if (modalContactId) modalContactId.value = contact.id;
-            if (modalContactName) modalContactName.value = contact.name || '';
-            if (modalContactPhone) modalContactPhone.value = contact.phone || '';
-            if (modalContactTelegram) modalContactTelegram.value = contact.telegram_chat_id || '';
-            if (modalContactRelationship) modalContactRelationship.value = contact.relationship || 'Friend';
-            hideAllValidationErrors();
-            if (btnModalLoopSkip) btnModalLoopSkip.classList.add('hidden');
-            if (btnCloseContactModal) btnCloseContactModal.classList.remove('hidden');
-            if (modalContactFormTitle) {
-                modalContactFormTitle.innerHTML = 'Edit Emergency Contact<br><span class="title-hindi">आपातकालीन संपर्क बदलें</span>';
-            }
-            if (modalContactFormDesc) {
-                modalContactFormDesc.innerHTML = 'Update details for this emergency contact.<br><span class="desc-hindi">इस संपर्क का विवरण अपडेट करें।</span>';
-            }
-            if (btnModalContactSubmitText) {
-                btnModalContactSubmitText.innerHTML = 'Save Changes / सुरक्षित करें';
-            }
-            openModal(modalContactForm);
-        }
-
-        if (btnContactsAddNew) {
-            btnContactsAddNew.addEventListener('click', openAddContactModal);
-        }
-
-        if (btnCloseContactModal) {
-            btnCloseContactModal.addEventListener('click', () => closeModal(modalContactForm));
-        }
-
-        if (btnModalTelegramHelp) {
-            btnModalTelegramHelp.addEventListener('click', () => openModal(modalTelegramGuide));
-        }
-
-        if (btnSendTestAlert) {
-            btnSendTestAlert.addEventListener('click', () => {
-                alert('🔔 Test Alert Sent! All active contacts will receive a simulation message via Telegram.\nअलर्ट भेजा गया!');
-            });
-        }
-
-        if (modalContactName) {
-            modalContactName.addEventListener('input', () => {
-                if (modalContactName.classList.contains('input-error')) {
-                    setInputValidationState(modalContactName, errModalContactName, validateName(modalContactName.value));
-                }
-            });
-            modalContactName.addEventListener('blur', () => {
-                if (modalContactName.value.trim().length > 0) {
-                    setInputValidationState(modalContactName, errModalContactName, validateName(modalContactName.value));
-                }
-            });
-        }
-
-        if (modalContactPhone) {
-            modalContactPhone.addEventListener('input', () => {
-                if (modalContactPhone.classList.contains('input-error')) {
-                    setInputValidationState(modalContactPhone, errModalContactPhone, validatePhone(modalContactPhone.value));
-                }
-            });
-            modalContactPhone.addEventListener('blur', () => {
-                if (modalContactPhone.value.trim().length > 0) {
-                    setInputValidationState(modalContactPhone, errModalContactPhone, validatePhone(modalContactPhone.value));
-                }
-            });
-        }
-
-        if (modalContactTelegram) {
-            modalContactTelegram.addEventListener('input', () => {
-                if (modalContactTelegram.classList.contains('input-error')) {
-                    setInputValidationState(modalContactTelegram, errModalContactTelegram, validateTelegramId(modalContactTelegram.value));
-                }
-            });
-            modalContactTelegram.addEventListener('blur', () => {
-                if (modalContactTelegram.value.trim().length > 0) {
-                    setInputValidationState(modalContactTelegram, errModalContactTelegram, validateTelegramId(modalContactTelegram.value));
-                }
-            });
-        }
-
-        if (formModalContact) {
-            formModalContact.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const id = modalContactId ? modalContactId.value : '';
-                const name = modalContactName ? modalContactName.value.trim() : '';
-                const phone = modalContactPhone ? modalContactPhone.value.trim() : '';
-                const telegram_chat_id = modalContactTelegram ? modalContactTelegram.value.trim() : '';
-                const relationship = modalContactRelationship ? modalContactRelationship.value : 'Friend';
-
-                const nameRes = validateName(name);
-                const phoneRes = validatePhone(phone);
-                const tgRes = validateTelegramId(telegram_chat_id);
-
-                setInputValidationState(modalContactName, errModalContactName, nameRes);
-                setInputValidationState(modalContactPhone, errModalContactPhone, phoneRes);
-                setInputValidationState(modalContactTelegram, errModalContactTelegram, tgRes);
-
-                if (!nameRes.valid || !phoneRes.valid || !tgRes.valid) {
-                    const firstError = (!nameRes.valid ? nameRes.message : (!phoneRes.valid ? phoneRes.message : tgRes.message));
-                    alert(`Validation Error: ${firstError}`);
-                    return;
-                }
-
-                try {
-                    const method = id ? 'PUT' : 'POST';
-                    const url = id ? `/api/contacts/${id}` : '/api/contacts';
-
-                    const res = await fetch(url, {
-                        method: method,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, phone, telegram_chat_id, relationship })
+                        fullContactsList.appendChild(card);
                     });
-
-                    if (res.ok) {
-                        closeModal(modalContactForm);
-                        await loadContacts();
-                        // Requirement R3: Trigger success modal when contact is added
-                        if (!id) {
-                            openModal(modalContactSuccess);
-                        }
-                    } else {
-                        const err = await res.json();
-                        alert(`Could not save contact: ${err.detail || 'Invalid input'}`);
-                    }
-                } catch (err) {
-                    console.error('Failed to save contact:', err);
-                    alert('Network error while saving contact.');
                 }
-            });
-        }
+            }
 
-        // Drawer form submission (legacy compatibility)
-        if (formAddContact) {
-            formAddContact.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const name = drawerContactName ? drawerContactName.value.trim() : '';
-                const phone = drawerContactPhone ? drawerContactPhone.value.trim() : '';
-                const telegram_chat_id = drawerContactTelegram ? drawerContactTelegram.value.trim() : '';
-                const relationship = drawerContactRel ? drawerContactRel.value : 'Friend';
+            // 2. Render Legacy Modal Contacts List (#contacts-list) for test compatibility
+            if (contactsList) {
+                contactsList.innerHTML = '';
+                if (count === 0) {
+                    contactsList.innerHTML = `
+                    <div class="contacts-empty-box">
+                        <p>No emergency contacts saved yet.</p>
+                        <p style="font-size: 11px; margin-top: 4px; opacity: 0.7;">Add contacts below to alert them via Telegram with live GPS.</p>
+                    </div>
+                `;
+                } else {
+                    contacts.forEach(contact => {
+                        const item = document.createElement('div');
+                        item.className = 'contact-card-item';
+                        const tgBadge = contact.telegram_chat_id
+                            ? `<span class="badge-tag tg">✈️ ${escapeHtml(contact.telegram_chat_id)}</span>`
+                            : `<span class="badge-tag">No TG</span>`;
 
-                const nameRes = validateName(name);
-                const phoneRes = validatePhone(phone);
-                const tgRes = validateTelegramId(telegram_chat_id);
+                        item.innerHTML = `
+                        <div class="contact-card-info">
+                            <strong>${escapeHtml(contact.name)}</strong>
+                            <span>📞 ${escapeHtml(contact.phone)}</span>
+                            <div class="contact-card-badges">
+                                <span class="badge-tag">${escapeHtml(contact.relationship || 'Contact')}</span>
+                                ${tgBadge}
+                            </div>
+                        </div>
+                        <div class="contact-card-actions">
+                            <button type="button" class="btn-card-edit" data-id="${contact.id}" title="Edit contact" aria-label="Edit contact">✏️</button>
+                            <button type="button" class="btn-card-del" data-id="${contact.id}" title="Delete contact" aria-label="Delete contact">🗑️</button>
+                        </div>
+                    `;
 
-                if (!nameRes.valid || !phoneRes.valid || !tgRes.valid) {
-                    const firstError = (!nameRes.valid ? nameRes.message : (!phoneRes.valid ? phoneRes.message : tgRes.message));
-                    alert(`Validation Error: ${firstError}`);
-                    return;
-                }
+                        const btnEdit = item.querySelector('.btn-card-edit');
+                        if (btnEdit) btnEdit.addEventListener('click', () => openEditContactModal(contact));
 
-                try {
-                    const res = await fetch('/api/contacts', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, phone, telegram_chat_id, relationship })
+                        const btnDel = item.querySelector('.btn-card-del');
+                        btnDel.addEventListener('click', () => deleteContact(contact.id));
+                        contactsList.appendChild(item);
                     });
-
-                    if (res.ok) {
-                        if (drawerContactName) drawerContactName.value = '';
-                        if (drawerContactPhone) drawerContactPhone.value = '';
-                        if (drawerContactTelegram) drawerContactTelegram.value = '';
-                        await loadContacts();
-                    } else {
-                        const err = await res.json();
-                        alert(`Could not save contact: ${err.detail || 'Invalid input'}`);
-                    }
-                } catch (err) {
-                    console.error('Failed to save drawer contact:', err);
-                }
-            });
-        }
-
-        // Navigation to Dedicated Emergency Contacts Screen
-        if (btnHeaderContacts) {
-            btnHeaderContacts.addEventListener('click', () => {
-                showContactsScreen();
-            });
-        }
-
-        const btnMenu = document.getElementById('btn-menu');
-        if (btnMenu && btnMenu !== btnHeaderContacts) {
-            btnMenu.addEventListener('click', (e) => {
-                e.stopPropagation();
-                showContactsScreen();
-            });
-        }
-
-        if (btnContactsBack) {
-            btnContactsBack.addEventListener('click', showDashboardScreen);
-        }
-
-        if (btnCloseContacts) {
-            btnCloseContacts.addEventListener('click', () => closeModal(contactsModal));
-        }
-
-        // =========================================================================
-        // PERSONAL DETAILS & PROFILE MANAGEMENT
-        // =========================================================================
-        function renderProfileCards() {
-            const profile = getUserProfile();
-
-            if (displayProfileName) {
-                displayProfileName.innerText = (profile.name && profile.name.trim())
-                    ? (profile.name.includes('(') ? profile.name : `${profile.name} (प्रिया शर्मा)`)
-                    : 'Priya Sharma (प्रिया शर्मा)';
-            }
-
-            if (valProfileName) {
-                valProfileName.innerText = (profile.name && profile.name.trim())
-                    ? (profile.name.includes('/') ? profile.name : `${profile.name} / प्रिया शर्मा`)
-                    : 'Priya Sharma / प्रिया शर्मा';
-            }
-
-            if (valProfileDob) {
-                if (profile.dob) {
-                    const parts = profile.dob.split('-');
-                    if (parts.length === 3) {
-                        valProfileDob.innerText = `${parts[2]} / ${parts[1]} / ${parts[0]}`;
-                    } else {
-                        valProfileDob.innerText = profile.dob;
-                    }
-                } else {
-                    valProfileDob.innerText = '14 / 08 / 1998';
                 }
             }
-
-            if (valProfileBlood) {
-                const bg = profile.blood_group || 'O+';
-                let bgDisplay = bg;
-                if (bg === 'O+' || bg.includes('O+')) bgDisplay = 'O+ (ओ पॉजिटिव)';
-                else if (bg === 'A+' || bg.includes('A+')) bgDisplay = 'A+ (ए पॉजिटिव)';
-                else if (bg === 'B+' || bg.includes('B+')) bgDisplay = 'B+ (बी पॉजिटिव)';
-                else if (bg === 'AB+' || bg.includes('AB+')) bgDisplay = 'AB+ (एबी पॉजिटिव)';
-                valProfileBlood.innerText = bgDisplay;
-            }
-
-            if (valProfileArea) {
-                valProfileArea.innerText = (profile.area && profile.area.trim())
-                    ? (profile.area.includes('/') ? profile.area : `${profile.area} / राजौरी गार्डन, नई दिल्ली`)
-                    : 'Rajouri Garden, New Delhi / राजौरी गार्डन, नई दिल्ली';
-            }
-
-            if (valProfilePhone) {
-                valProfilePhone.innerText = (profile.phone && profile.phone.trim())
-                    ? profile.phone.trim()
-                    : '+91 90123 45678';
-            }
+        } catch (err) {
+            console.error('Failed to load contacts:', err);
         }
+    }
 
-        function openSingleFieldEdit(fieldKey) {
-            const profile = getUserProfile();
-            if (!modalFieldEdit || !editFieldKey || !editFieldLabel || !editFieldInputContainer) return;
-
-            editFieldKey.value = fieldKey;
-            const fieldLabels = {
-                name: 'Full Name / पूरा नाम',
-                dob: 'Date of Birth / जन्म तिथि',
-                blood_group: 'Blood Group / ब्लड ग्रुप',
-                area: 'Local Area / स्थानीय इलाका'
-            };
-
-            if (modalFieldEditTitle) {
-                modalFieldEditTitle.innerText = `Edit ${fieldLabels[fieldKey] || 'Field'}`;
-            }
-            editFieldLabel.innerText = fieldLabels[fieldKey] || 'Field Value';
-
-            let inputHtml = '';
-            if (fieldKey === 'dob') {
-                const todayStr = new Date().toISOString().split('T')[0];
-                inputHtml = `<input type="date" id="edit-field-input" class="styled-input date-input" max="${todayStr}" value="${profile.dob || '1998-08-14'}" required>`;
-            } else if (fieldKey === 'blood_group') {
-                const currentBg = profile.blood_group || 'O+';
-                inputHtml = `
-                <select id="edit-field-input" class="styled-select" required>
-                    <option value="A+" ${currentBg === 'A+' ? 'selected' : ''}>A+</option>
-                    <option value="A-" ${currentBg === 'A-' ? 'selected' : ''}>A-</option>
-                    <option value="B+" ${currentBg === 'B+' ? 'selected' : ''}>B+</option>
-                    <option value="B-" ${currentBg === 'B-' ? 'selected' : ''}>B-</option>
-                    <option value="AB+" ${currentBg === 'AB+' ? 'selected' : ''}>AB+</option>
-                    <option value="AB-" ${currentBg === 'AB-' ? 'selected' : ''}>AB-</option>
-                    <option value="O+" ${currentBg === 'O+' ? 'selected' : ''}>O+</option>
-                    <option value="O-" ${currentBg === 'O-' ? 'selected' : ''}>O-</option>
-                    <option value="Don't know" ${currentBg === "Don't know" ? 'selected' : ''}>Don't know / पता नहीं</option>
-                </select>
-            `;
+    async function deleteContact(id) {
+        if (!confirm('Are you sure you want to delete this emergency contact?')) return;
+        try {
+            const res = await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                await loadContacts();
             } else {
-                inputHtml = `<input type="text" id="edit-field-input" class="styled-input" value="${profile[fieldKey] || ''}" required>`;
+                alert('Failed to delete contact.');
             }
-
-            editFieldInputContainer.innerHTML = inputHtml;
-            openModal(modalFieldEdit);
+        } catch (e) {
+            console.error('Error deleting contact:', e);
         }
+    }
 
-        document.querySelectorAll('.btn-field-edit').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const field = btn.getAttribute('data-field');
-                if (field) {
-                    openSingleFieldEdit(field);
-                }
-            });
+    // Modal Contact Form Helpers (contact_page.png)
+    function openAddContactModal() {
+        if (modalContactId) modalContactId.value = '';
+        if (modalContactName) modalContactName.value = '';
+        if (modalContactPhone) modalContactPhone.value = '';
+        if (modalContactTelegram) modalContactTelegram.value = '';
+        if (modalContactRelationship) modalContactRelationship.value = 'Friend';
+        hideAllValidationErrors();
+        if (btnModalLoopSkip) btnModalLoopSkip.classList.add('hidden');
+        if (btnCloseContactModal) btnCloseContactModal.classList.remove('hidden');
+        if (modalContactFormTitle) {
+            modalContactFormTitle.innerHTML = 'Add Emergency Contact<br><span class="title-hindi">आपातकालीन संपर्क जोड़ें</span>';
+        }
+        if (modalContactFormDesc) {
+            modalContactFormDesc.innerHTML = 'Whom should we notify in an emergency?<br><span class="desc-hindi">आपातकाल में हम किसे सूचित करें?</span>';
+        }
+        if (btnModalContactSubmitText) {
+            btnModalContactSubmitText.innerHTML = '+ Add Emergency Contact<br><span class="btn-subtext-hindi">+ आपातकालीन संपर्क जोड़ें</span>';
+        }
+        openModal(modalContactForm);
+    }
+
+    function openEditContactModal(contact) {
+        if (modalContactId) modalContactId.value = contact.id;
+        if (modalContactName) modalContactName.value = contact.name || '';
+        if (modalContactPhone) modalContactPhone.value = contact.phone || '';
+        if (modalContactTelegram) modalContactTelegram.value = contact.telegram_chat_id || '';
+        if (modalContactRelationship) modalContactRelationship.value = contact.relationship || 'Friend';
+        hideAllValidationErrors();
+        if (btnModalLoopSkip) btnModalLoopSkip.classList.add('hidden');
+        if (btnCloseContactModal) btnCloseContactModal.classList.remove('hidden');
+        if (modalContactFormTitle) {
+            modalContactFormTitle.innerHTML = 'Edit Emergency Contact<br><span class="title-hindi">आपातकालीन संपर्क बदलें</span>';
+        }
+        if (modalContactFormDesc) {
+            modalContactFormDesc.innerHTML = 'Update details for this emergency contact.<br><span class="desc-hindi">इस संपर्क का विवरण अपडेट करें।</span>';
+        }
+        if (btnModalContactSubmitText) {
+            btnModalContactSubmitText.innerHTML = 'Save Changes / सुरक्षित करें';
+        }
+        openModal(modalContactForm);
+    }
+
+    if (btnContactsAddNew) {
+        btnContactsAddNew.addEventListener('click', openAddContactModal);
+    }
+
+    if (btnCloseContactModal) {
+        btnCloseContactModal.addEventListener('click', () => closeModal(modalContactForm));
+    }
+
+    if (btnModalTelegramHelp) {
+        btnModalTelegramHelp.addEventListener('click', () => openModal(modalTelegramGuide));
+    }
+
+    if (btnSendTestAlert) {
+        btnSendTestAlert.addEventListener('click', () => {
+            alert('🔔 Test Alert Sent! All active contacts will receive a simulation message via Telegram.\nअलर्ट भेजा गया!');
         });
+    }
 
-        if (btnCloseFieldEdit) {
-            btnCloseFieldEdit.addEventListener('click', () => closeModal(modalFieldEdit));
-        }
-        if (btnCancelFieldEdit) {
-            btnCancelFieldEdit.addEventListener('click', () => closeModal(modalFieldEdit));
-        }
-
-        if (formFieldEdit) {
-            formFieldEdit.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const key = editFieldKey ? editFieldKey.value : '';
-                const inputEl = document.getElementById('edit-field-input');
-                if (!key || !inputEl) return;
-                const val = inputEl.value.trim();
-                if (!val) {
-                    alert('Field value cannot be empty.');
-                    return;
-                }
-
-                if (key === 'dob' && isDateInFuture(val)) {
-                    alert('Date of Birth cannot be in the future. / जन्म तिथि भविष्य की नहीं हो सकती।');
-                    return;
-                }
-
-                const profile = getUserProfile();
-                profile[key] = val;
-                saveUserProfile(profile);
-                renderProfileCards();
-                populateProfileModal();
-                closeModal(modalFieldEdit);
-            });
-        }
-
-        if (btnChangeAvatar) {
-            btnChangeAvatar.addEventListener('click', () => {
-                alert('📷 Profile avatar picture updated. / प्रोफ़ाइल फ़ोटो अपडेट की गई।');
-            });
-        }
-
-        // Legacy profile modal helpers & handlers
-        function populateProfileModal() {
-            const profile = getUserProfile();
-            if (profileNameInput) profileNameInput.value = profile.name || '';
-            if (profileDobInput) profileDobInput.value = profile.dob || '';
-            if (profileBloodGroupSelect) profileBloodGroupSelect.value = profile.blood_group || '';
-            if (profileAreaInput) profileAreaInput.value = profile.area || '';
-        }
-
-        // Navigation to Dedicated Personal Details Screen
-        if (btnHeaderProfile) {
-            btnHeaderProfile.addEventListener('click', () => {
-                showProfileScreen();
-            });
-        }
-
-        const btnProfile = document.getElementById('btn-profile');
-        if (btnProfile && btnProfile !== btnHeaderProfile) {
-            btnProfile.addEventListener('click', (e) => {
-                e.stopPropagation();
-                showProfileScreen();
-            });
-        }
-
-        if (btnProfileBack) {
-            btnProfileBack.addEventListener('click', showDashboardScreen);
-        }
-
-        if (btnCloseProfile) {
-            btnCloseProfile.addEventListener('click', () => closeModal(userProfileModal));
-        }
-
-        if (btnRevertProfile) {
-            btnRevertProfile.addEventListener('click', () => {
-                populateProfileModal();
-            });
-        }
-
-        if (btnSaveProfile) {
-            btnSaveProfile.addEventListener('click', () => {
-                const name = profileNameInput ? profileNameInput.value.trim() : '';
-                if (name.length < 2) {
-                    alert('Please enter a valid full name (minimum 2 characters).');
-                    return;
-                }
-
-                if (profileDobInput && isDateInFuture(profileDobInput.value)) {
-                    alert('Date of Birth cannot be in the future. / जन्म तिथि भविष्य की नहीं हो सकती।');
-                    return;
-                }
-
-                const updated = {
-                    ...getUserProfile(),
-                    name: name,
-                    dob: profileDobInput ? profileDobInput.value : '',
-                    blood_group: profileBloodGroupSelect ? profileBloodGroupSelect.value : '',
-                    area: profileAreaInput ? profileAreaInput.value.trim() : ''
-                };
-
-                saveUserProfile(updated);
-                renderProfileCards();
-                closeModal(userProfileModal);
-            });
-        }
-
-        // =========================================================================
-        // APP INFO MODAL
-        // =========================================================================
-        if (btnHeaderInfo) {
-            btnHeaderInfo.addEventListener('click', () => openModal(infoModal));
-        }
-
-        const btnInfo = document.getElementById('btn-info');
-        if (btnInfo && btnInfo !== btnHeaderInfo) {
-            btnInfo.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openModal(infoModal);
-            });
-        }
-
-        if (btnCloseInfo) {
-            btnCloseInfo.addEventListener('click', () => closeModal(infoModal));
-        }
-
-        if (btnDismissInfo) {
-            btnDismissInfo.addEventListener('click', () => closeModal(infoModal));
-        }
-
-        // Modal background click dismissals
-        [modalTelegramGuide, modalContactSuccess, contactsModal, userProfileModal, infoModal].forEach(modal => {
-            if (modal) {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        closeModal(modal);
-                    }
-                });
+    if (modalContactName) {
+        modalContactName.addEventListener('input', () => {
+            if (modalContactName.classList.contains('input-error')) {
+                setInputValidationState(modalContactName, errModalContactName, validateName(modalContactName.value));
             }
         });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                [modalTelegramGuide, modalContactSuccess, contactsModal, userProfileModal, infoModal].forEach(closeModal);
+        modalContactName.addEventListener('blur', () => {
+            if (modalContactName.value.trim().length > 0) {
+                setInputValidationState(modalContactName, errModalContactName, validateName(modalContactName.value));
             }
         });
+    }
 
-        // =========================================================================
-        // SOS TRIGGER LOGIC & HERO BUTTON (#btn-sos)
-        // =========================================================================
-        async function executeEmergencySos() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            if (statusTime) statusTime.innerText = timeStr;
-            if (statusLocation) statusLocation.innerText = 'Acquiring GPS...';
-            if (statusTelegram) {
-                statusTelegram.innerText = 'Broadcasting...';
-                statusTelegram.className = 'metric-val pending';
+    if (modalContactPhone) {
+        modalContactPhone.addEventListener('input', () => {
+            if (modalContactPhone.classList.contains('input-error')) {
+                setInputValidationState(modalContactPhone, errModalContactPhone, validatePhone(modalContactPhone.value));
             }
-
-            // Switch to status screen
-            showStatusScreen();
-
-            // 1. Fetch live coordinates
-            currentLocation = await getUserLocation();
-
-            if (statusLocation) {
-                if (currentLocation && currentLocation.lat && currentLocation.lon) {
-                    statusLocation.innerText = `${currentLocation.lat.toFixed(4)}, ${currentLocation.lon.toFixed(4)}`;
-                } else {
-                    statusLocation.innerText = 'GPS Unavailable / Mocked';
-                }
+        });
+        modalContactPhone.addEventListener('blur', () => {
+            if (modalContactPhone.value.trim().length > 0) {
+                setInputValidationState(modalContactPhone, errModalContactPhone, validatePhone(modalContactPhone.value));
             }
+        });
+    }
 
-            const userName = getUserName();
-
-            // 2. Transmit /api/trigger payload with user_name
-            const triggerPayload = {
-                type: source,
-                trigger_type: source,
-                location: currentLocation,
-                user_name: userName
-            };
-
-            try {
-                fetch('/api/trigger', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(triggerPayload)
-                }).catch(e => console.error('Failed to call /api/trigger:', e));
-            } catch (e) {
-                console.error('Trigger call error:', e);
+    if (modalContactTelegram) {
+        modalContactTelegram.addEventListener('input', () => {
+            if (modalContactTelegram.classList.contains('input-error')) {
+                setInputValidationState(modalContactTelegram, errModalContactTelegram, validateTelegramId(modalContactTelegram.value));
             }
-
-            // 3. Transmit /api/alert/telegram payload with user_name
-            const alertPayload = {
-                type: 'button',
-                location: currentLocation,
-                user_name: userName
-            };
-
-            try {
-                const res = await fetch('/api/alert/telegram', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(alertPayload)
-                });
-                const data = await res.json();
-                if (data.status === 'sent') {
-                    if (statusTelegram) {
-                        statusTelegram.innerText = `Sent (${data.recipients_sent || 1} recipients)`;
-                        statusTelegram.className = 'metric-val success';
-                    }
-                } else {
-                    if (statusTelegram) {
-                        statusTelegram.innerText = data.message || 'Alert Failed';
-                        statusTelegram.className = 'metric-val failed';
-                    }
-                }
-            } catch (e) {
-                console.error('Alert broadcast error:', e);
-                if (statusTelegram) {
-                    statusTelegram.innerText = 'Offline / Failed';
-                    statusTelegram.className = 'metric-val failed';
-                }
+        });
+        modalContactTelegram.addEventListener('blur', () => {
+            if (modalContactTelegram.value.trim().length > 0) {
+                setInputValidationState(modalContactTelegram, errModalContactTelegram, validateTelegramId(modalContactTelegram.value));
             }
-        }
+        });
+    }
 
-        if (btnSOS) {
-            let isHolding = false;
-            let triggeredByHold = false;
-            const HOLD_DURATION_MS = 1500;
+    if (formModalContact) {
+        formModalContact.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = modalContactId ? modalContactId.value : '';
+            const name = modalContactName ? modalContactName.value.trim() : '';
+            const phone = modalContactPhone ? modalContactPhone.value.trim() : '';
+            const telegram_chat_id = modalContactTelegram ? modalContactTelegram.value.trim() : '';
+            const relationship = modalContactRelationship ? modalContactRelationship.value : 'Friend';
 
-            function startSosHold(e) {
-                if (isHolding) return;
-                isHolding = true;
-                triggeredByHold = false;
-                btnSOS.classList.add('holding');
+            const nameRes = validateName(name);
+            const phoneRes = validatePhone(phone);
+            const tgRes = validateTelegramId(telegram_chat_id);
 
-                sosHoldTimeout = setTimeout(() => {
-                    if (isHolding) {
-                        triggeredByHold = true;
-                        btnSOS.classList.remove('holding');
-                        btnSOS.classList.add('triggered');
-                        setTimeout(() => btnSOS.classList.remove('triggered'), 1000);
-                        isHolding = false;
-                        executeEmergencySos();
-                    }
-                }, HOLD_DURATION_MS);
-            }
+            setInputValidationState(modalContactName, errModalContactName, nameRes);
+            setInputValidationState(modalContactPhone, errModalContactPhone, phoneRes);
+            setInputValidationState(modalContactTelegram, errModalContactTelegram, tgRes);
 
-            function cancelSosHold(e) {
-                if (!isHolding) return;
-                isHolding = false;
-                btnSOS.classList.remove('holding');
-                if (sosHoldTimeout) {
-                    clearTimeout(sosHoldTimeout);
-                    sosHoldTimeout = null;
-                }
-            }
-
-            // Desktop mouse press-and-hold
-            btnSOS.addEventListener('mousedown', (e) => {
-                if (e.button === 0) startSosHold(e);
-            });
-            btnSOS.addEventListener('mouseup', cancelSosHold);
-            btnSOS.addEventListener('mouseleave', cancelSosHold);
-
-            // Mobile touch press-and-hold
-            btnSOS.addEventListener('touchstart', (e) => {
-                startSosHold(e);
-            }, { passive: true });
-            btnSOS.addEventListener('touchend', cancelSosHold);
-            btnSOS.addEventListener('touchcancel', cancelSosHold);
-
-            // Instant click fallback for automated test suites (.click()) & quick click
-            btnSOS.addEventListener('click', (e) => {
-                if (triggeredByHold) {
-                    triggeredByHold = false;
-                    return;
-                }
-                cancelSosHold(e);
-                executeEmergencySos();
-            });
-        }
-
-        // =========================================================================
-        // INTERACTIVE SIREN CONTROLLER (Web Audio API Sound Synthesis)
-        // =========================================================================
-        let sirenAudioContext = null;
-        let sirenOscillator = null;
-        let sirenGainNode = null;
-        let sirenModInterval = null;
-        let isSirenActive = false;
-
-        function startSiren() {
-            if (isSirenActive) return;
-            isSirenActive = true;
-
-            if (btnSosSiren) {
-                btnSosSiren.classList.add('active');
-            }
-            if (sosSirenLabel) {
-                sosSirenLabel.textContent = 'Siren ON 🔊';
-            }
-            if (sirenCheckbox) {
-                sirenCheckbox.checked = true;
-            }
-
-            try {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (AudioCtx) {
-                    if (!sirenAudioContext || sirenAudioContext.state === 'closed') {
-                        sirenAudioContext = new AudioCtx();
-                    }
-                    if (sirenAudioContext.state === 'suspended') {
-                        sirenAudioContext.resume();
-                    }
-
-                    sirenOscillator = sirenAudioContext.createOscillator();
-                    sirenGainNode = sirenAudioContext.createGain();
-
-                    sirenOscillator.type = 'sawtooth';
-                    sirenOscillator.frequency.setValueAtTime(720, sirenAudioContext.currentTime);
-
-                    // Safe audible level
-                    sirenGainNode.gain.setValueAtTime(0.28, sirenAudioContext.currentTime);
-
-                    sirenOscillator.connect(sirenGainNode);
-                    sirenGainNode.connect(sirenAudioContext.destination);
-
-                    sirenOscillator.start();
-
-                    // High-low frequency alternating siren modulation
-                    let toggleHigh = false;
-                    sirenModInterval = setInterval(() => {
-                        if (!isSirenActive || !sirenOscillator || !sirenAudioContext) return;
-                        toggleHigh = !toggleHigh;
-                        const targetFreq = toggleHigh ? 960 : 660;
-                        try {
-                            sirenOscillator.frequency.cancelScheduledValues(sirenAudioContext.currentTime);
-                            sirenOscillator.frequency.linearRampToValueAtTime(
-                                targetFreq,
-                                sirenAudioContext.currentTime + 0.28
-                            );
-                        } catch (e) {
-                            sirenOscillator.frequency.setValueAtTime(targetFreq, sirenAudioContext.currentTime);
-                        }
-                    }, 300);
-                }
-            } catch (e) {
-                console.warn('Web Audio API synthesis notice:', e);
-            }
-        }
-
-        function stopSiren() {
-            if (!isSirenActive) return;
-            isSirenActive = false;
-
-            if (btnSosSiren) {
-                btnSosSiren.classList.remove('active');
-            }
-            if (sosSirenLabel) {
-                sosSirenLabel.textContent = 'Siren OFF';
-            }
-            if (sirenCheckbox) {
-                sirenCheckbox.checked = false;
-            }
-
-            if (sirenModInterval) {
-                clearInterval(sirenModInterval);
-                sirenModInterval = null;
-            }
-
-            if (sirenOscillator) {
-                try {
-                    sirenOscillator.stop();
-                    sirenOscillator.disconnect();
-                } catch (e) { }
-                sirenOscillator = null;
-            }
-
-            if (sirenGainNode) {
-                try {
-                    sirenGainNode.disconnect();
-                } catch (e) { }
-                sirenGainNode = null;
-            }
-        }
-
-        function toggleSiren() {
-            if (isSirenActive) {
-                stopSiren();
-            } else {
-                startSiren();
-            }
-        }
-
-        if (btnSosSiren) {
-            btnSosSiren.addEventListener('click', toggleSiren);
-        }
-        if (sirenCheckbox) {
-            sirenCheckbox.addEventListener('change', () => {
-                if (sirenCheckbox.checked) startSiren();
-                else stopSiren();
-            });
-        }
-
-        // =========================================================================
-        // SAKHI MULTI-LANGUAGE CHATBOT CONTROLLER (Features 16, 17, 18)
-        // =========================================================================
-        const SAKHI_LANGUAGES = {
-            en: {
-                code: 'en',
-                label: 'EN',
-                greeting: "Great! We'll chat in English. 😊\n\nHow are you feeling today? You can share anything with me—this is a safe space.",
-                chips: [
-                    "Feeling stressed",
-                    "Just want to vent",
-                    "Need motivation",
-                    "Can we do an exercise?"
-                ],
-                placeholder: "Type a message..."
-            },
-            hi: {
-                code: 'hi',
-                label: 'हिंदी',
-                greeting: "बहुत बढ़िया! अब से हम हिंदी में बात करेंगे। 😊\n\nआज आप कैसा महसूस कर रहे हैं? आप अपने दिल की बात बिना किसी संकोच के मुझसे साझा कर सकते हैं—यह बिल्कुल सुरक्षित जगह है।",
-                chips: [
-                    "तनाव महसूस हो रहा है",
-                    "बस बात करनी है",
-                    "मोटिवेशन चाहिए",
-                    "क्या कोई एक्सरसाइज करें?"
-                ],
-                placeholder: "अपनी बात यहाँ लिखें..."
-            },
-            hinglish: {
-                code: 'hinglish',
-                label: 'Hinglish',
-                greeting: "Sahi hai! Ab se hum Hinglish mein बात karenge. 😊\n\nAap aaj kaisa feel kar rahe ho? Jo bhi aapke dil mein ho, aap bina kisi darr ke share kar sakte ho—yeh bilkul safe aur private space hai.",
-                chips: [
-                    "Stress ho raha hai",
-                    "Bas vent karna hai",
-                    "Motivation chahiye",
-                    "Koi exercise karein?"
-                ],
-                placeholder: "Kuch type karein ya baat karein..."
-            }
-        };
-
-        let selectedSakhiLang = null;
-
-        function renderSakhiPromptChips(chips) {
-            if (!sakhiPromptChips) return;
-            sakhiPromptChips.innerHTML = '';
-            chips.forEach(chipText => {
-                const chipBtn = document.createElement('button');
-                chipBtn.type = 'button';
-                chipBtn.className = 'quick-chip';
-                chipBtn.textContent = chipText;
-                chipBtn.addEventListener('click', () => {
-                    if (chatInput) {
-                        chatInput.value = chipText;
-                        handleSendChat();
-                    }
-                });
-                sakhiPromptChips.appendChild(chipBtn);
-            });
-            sakhiPromptChips.classList.remove('hidden');
-        }
-
-        function selectSakhiLanguage(langKey) {
-            const langConfig = SAKHI_LANGUAGES[langKey];
-            if (!langConfig) return;
-            selectedSakhiLang = langKey;
-
-            if (currentLangIndicator) {
-                currentLangIndicator.textContent = langConfig.label;
-            }
-
-            // Switch views: hide language selection, show messages & chips
-            if (sakhiLangSelection) {
-                sakhiLangSelection.classList.add('hidden');
-            }
-            if (chatMessages) {
-                chatMessages.classList.remove('hidden');
-            }
-
-            // Enable input and set placeholder
-            if (chatInput) {
-                chatInput.disabled = false;
-                chatInput.placeholder = langConfig.placeholder;
-                chatInput.focus();
-            }
-            if (btnSendChat) {
-                btnSendChat.disabled = false;
-            }
-
-            // Render prompt chips
-            renderSakhiPromptChips(langConfig.chips);
-
-            // Render initial greeting if messages container is empty
-            if (chatMessages && chatMessages.children.length === 0) {
-                appendMessage(langConfig.greeting, 'bot');
-            }
-        }
-
-        function switchSakhiLanguagePrompt() {
-            if (sakhiLangSelection) {
-                sakhiLangSelection.classList.remove('hidden');
-            }
-            if (sakhiPromptChips) {
-                sakhiPromptChips.classList.add('hidden');
-            }
-            if (chatInput) {
-                chatInput.disabled = true;
-                chatInput.placeholder = "Select a language to start / शुरू करने के लिए भाषा चुनें";
-            }
-            if (btnSendChat) {
-                btnSendChat.disabled = true;
-            }
-        }
-
-        if (btnLangEn) {
-            btnLangEn.addEventListener('click', () => selectSakhiLanguage('en'));
-        }
-        if (btnLangHi) {
-            btnLangHi.addEventListener('click', () => selectSakhiLanguage('hi'));
-        }
-        if (btnLangHinglish) {
-            btnLangHinglish.addEventListener('click', () => selectSakhiLanguage('hinglish'));
-        }
-        if (btnChatSwitchLang) {
-            btnChatSwitchLang.addEventListener('click', switchSakhiLanguagePrompt);
-        }
-        if (btnChatInfo) {
-            btnChatInfo.addEventListener('click', () => {
-                if (infoModal) {
-                    infoModal.classList.remove('hidden');
-                }
-            });
-        }
-
-        if (cardChatbot) {
-            cardChatbot.addEventListener('click', () => {
-                showChatScreen('daily');
-            });
-        }
-
-        if (btnBackChat) {
-            btnBackChat.addEventListener('click', showDashboardScreen);
-        }
-
-        if (btnViewStatus) {
-            btnViewStatus.addEventListener('click', showStatusScreen);
-        }
-
-        if (btnStatusBack) {
-            btnStatusBack.addEventListener('click', showDashboardScreen);
-        }
-
-        if (btnReset) {
-            btnReset.addEventListener('click', () => {
-                stopSiren();
-                currentMode = 'daily';
-                chatInitialized = false;
-                currentLocation = null;
-                if (statusTime) statusTime.innerText = '--:--';
-                if (statusLocation) statusLocation.innerText = 'Fetching...';
-                if (statusTelegram) {
-                    statusTelegram.innerText = 'Pending';
-                    statusTelegram.className = 'metric-val pending';
-                }
-                showDashboardScreen();
-            });
-        }
-
-        function appendMessage(text, sender, id = null) {
-            if (!chatMessages) return;
-            const msg = document.createElement('div');
-            msg.className = `message ${sender}`;
-            msg.innerText = text;
-            if (id) msg.id = id;
-            chatMessages.appendChild(msg);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return msg;
-        }
-
-        async function handleSendChat() {
-            if (!chatInput) return;
-            const text = chatInput.value.trim();
-            if (!text) return;
-
-            appendMessage(text, 'user');
-            chatInput.value = '';
-
-            const typingId = 'typing-' + Date.now();
-            appendMessage('Sakhi is typing...', 'bot', typingId);
-
-            try {
-                const payload = {
-                    message: text,
-                    session_id: sessionId,
-                    mode: 'daily',
-                    location: currentLocation
-                };
-
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const typingEl = document.getElementById(typingId);
-                if (typingEl) typingEl.remove();
-
-                if (res.ok) {
-                    const data = await res.json();
-                    appendMessage(data.reply || "I'm with you. How can I assist further?", 'bot');
-                } else {
-                    appendMessage("I couldn't reach the server, but please stay calm and contact 112 if in danger.", 'bot');
-                }
-            } catch (e) {
-                console.error('Failed to send chat:', e);
-                const typingEl = document.getElementById(typingId);
-                if (typingEl) typingEl.remove();
-                appendMessage("Network connection issue. If this is an emergency, press SOS or call 112.", 'bot');
-            }
-        }
-
-        if (btnSendChat) btnSendChat.addEventListener('click', handleSendChat);
-        if (chatInput) {
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleSendChat();
-            });
-        }
-
-        // =========================================================================
-        // DEDICATED SIMPLE SOS CHAT CONTROLLER (Features 19, 20, 21)
-        // =========================================================================
-        function appendSosMessage(text, sender, id = null) {
-            if (!sosChatMessages) return;
-            const msg = document.createElement('div');
-            msg.className = `message ${sender}`;
-            msg.innerText = text;
-            if (id) msg.id = id;
-            sosChatMessages.appendChild(msg);
-            sosChatMessages.scrollTop = sosChatMessages.scrollHeight;
-            return msg;
-        }
-
-        async function handleSendSosChat(overrideText = null) {
-            const text = overrideText !== null ? overrideText.trim() : (sosChatInput ? sosChatInput.value.trim() : '');
-            if (!text) return;
-
-            appendSosMessage(text, 'user');
-            if (sosChatInput) sosChatInput.value = '';
-
-            const typingId = 'sos-typing-' + Date.now();
-            appendSosMessage('Sakhi is assessing emergency...', 'bot', typingId);
-
-            try {
-                const payload = {
-                    message: text,
-                    session_id: sessionId,
-                    mode: 'emergency',
-                    location: currentLocation
-                };
-
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const typingEl = document.getElementById(typingId);
-                if (typingEl) typingEl.remove();
-
-                if (res.ok) {
-                    const data = await res.json();
-                    appendSosMessage(data.reply || "Move to a well-lit area or guard immediately. Help is on the way.", 'bot');
-                } else {
-                    appendSosMessage("Connection error: Agar aap kisi khatre mein hain, turant 112 par call karein ya aas-paas help maangein.", 'bot');
-                }
-            } catch (e) {
-                console.error('Failed to send SOS chat:', e);
-                const typingEl = document.getElementById(typingId);
-                if (typingEl) typingEl.remove();
-                appendSosMessage("Connection error: Agar aap kisi khatre mein hain, turant 112 par call karein ya aas-paas help maangein.", 'bot');
-            }
-        }
-
-        function handleSosChipClick(chipText) {
-            if (chipText.toLowerCase().includes('safe for now') || chipText.includes('सुरक्षित')) {
-                stopSiren();
-                appendSosMessage(chipText, 'user');
-                appendSosMessage("I'm so glad to hear that you are safe! Take a deep breath. You can tap 'View Alert Status' or return to the dashboard standby whenever you are ready.", 'bot');
+            if (!nameRes.valid || !phoneRes.valid || !tgRes.valid) {
+                const firstError = (!nameRes.valid ? nameRes.message : (!phoneRes.valid ? phoneRes.message : tgRes.message));
+                alert(`Validation Error: ${firstError}`);
                 return;
             }
 
-            handleSendSosChat(chipText);
-        }
-
-        if (btnSosChatBack) {
-            btnSosChatBack.addEventListener('click', showDashboardScreen);
-        }
-
-        if (btnSendSosChat) {
-            btnSendSosChat.addEventListener('click', () => handleSendSosChat());
-        }
-
-        if (sosChatInput) {
-            sosChatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleSendSosChat();
-            });
-        }
-
-        if (sosEmergencyChips) {
-            const chips = sosEmergencyChips.querySelectorAll('.sos-quick-chip');
-            chips.forEach(chip => {
-                chip.addEventListener('click', () => {
-                    const msg = chip.getAttribute('data-msg') || chip.innerText.trim();
-                    handleSosChipClick(msg);
-                });
-            });
-        }
-
-        if (btnSosViewStatus) {
-            btnSosViewStatus.addEventListener('click', showStatusScreen);
-        }
-
-        if (btnStatusOpenSosChat) {
-            btnStatusOpenSosChat.addEventListener('click', showSosChatScreen);
-        }
-
-        async function fetchLiveAlertStatus() {
             try {
-                const res = await fetch('/api/alert/status');
-                const data = await res.json();
-                if (statusTelegram) {
-                    if (data.status === 'healthy') {
-                        statusTelegram.innerText = 'Connected & Ready';
-                        statusTelegram.className = 'metric-val success';
-                    } else {
-                        statusTelegram.innerText = 'Unconfigured';
-                        statusTelegram.className = 'metric-val pending';
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `/api/contacts/${id}` : '/api/contacts';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, telegram_chat_id, relationship })
+                });
+
+                if (res.ok) {
+                    closeModal(modalContactForm);
+                    await loadContacts();
+                    // Requirement R3: Trigger success modal when contact is added
+                    if (!id) {
+                        openModal(modalContactSuccess);
                     }
+                } else {
+                    const err = await res.json();
+                    alert(`Could not save contact: ${err.detail || 'Invalid input'}`);
                 }
-            } catch (e) {
-                console.error('Status fetch error:', e);
+            } catch (err) {
+                console.error('Failed to save contact:', err);
+                alert('Network error while saving contact.');
+            }
+        });
+    }
+
+    // Drawer form submission (legacy compatibility)
+    if (formAddContact) {
+        formAddContact.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = drawerContactName ? drawerContactName.value.trim() : '';
+            const phone = drawerContactPhone ? drawerContactPhone.value.trim() : '';
+            const telegram_chat_id = drawerContactTelegram ? drawerContactTelegram.value.trim() : '';
+            const relationship = drawerContactRel ? drawerContactRel.value : 'Friend';
+
+            const nameRes = validateName(name);
+            const phoneRes = validatePhone(phone);
+            const tgRes = validateTelegramId(telegram_chat_id);
+
+            if (!nameRes.valid || !phoneRes.valid || !tgRes.valid) {
+                const firstError = (!nameRes.valid ? nameRes.message : (!phoneRes.valid ? phoneRes.message : tgRes.message));
+                alert(`Validation Error: ${firstError}`);
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/contacts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, telegram_chat_id, relationship })
+                });
+
+                if (res.ok) {
+                    if (drawerContactName) drawerContactName.value = '';
+                    if (drawerContactPhone) drawerContactPhone.value = '';
+                    if (drawerContactTelegram) drawerContactTelegram.value = '';
+                    await loadContacts();
+                } else {
+                    const err = await res.json();
+                    alert(`Could not save contact: ${err.detail || 'Invalid input'}`);
+                }
+            } catch (err) {
+                console.error('Failed to save drawer contact:', err);
+            }
+        });
+    }
+
+    // Navigation to Dedicated Emergency Contacts Screen
+    if (btnHeaderContacts) {
+        btnHeaderContacts.addEventListener('click', () => {
+            showContactsScreen();
+        });
+    }
+
+    const btnMenu = document.getElementById('btn-menu');
+    if (btnMenu && btnMenu !== btnHeaderContacts) {
+        btnMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showContactsScreen();
+        });
+    }
+
+    if (btnContactsBack) {
+        btnContactsBack.addEventListener('click', showDashboardScreen);
+    }
+
+    if (btnCloseContacts) {
+        btnCloseContacts.addEventListener('click', () => closeModal(contactsModal));
+    }
+
+    // =========================================================================
+    // PERSONAL DETAILS & PROFILE MANAGEMENT
+    // =========================================================================
+    function renderProfileCards() {
+        const profile = getUserProfile();
+
+        if (displayProfileName) {
+            displayProfileName.innerText = (profile.name && profile.name.trim())
+                ? (profile.name.includes('(') ? profile.name : `${profile.name} (प्रिया शर्मा)`)
+                : 'Priya Sharma (प्रिया शर्मा)';
+        }
+
+        if (valProfileName) {
+            valProfileName.innerText = (profile.name && profile.name.trim())
+                ? (profile.name.includes('/') ? profile.name : `${profile.name} / प्रिया शर्मा`)
+                : 'Priya Sharma / प्रिया शर्मा';
+        }
+
+        if (valProfileDob) {
+            if (profile.dob) {
+                const parts = profile.dob.split('-');
+                if (parts.length === 3) {
+                    valProfileDob.innerText = `${parts[2]} / ${parts[1]} / ${parts[0]}`;
+                } else {
+                    valProfileDob.innerText = profile.dob;
+                }
+            } else {
+                valProfileDob.innerText = '14 / 08 / 1998';
             }
         }
 
-        // =========================================================================
-        // INITIALIZATION ENTRY POINT
-        // =========================================================================
-        const isOnboarded = localStorage.getItem(ONBOARDED_KEY);
-        if (btnWelcomeStart) {
-            btnWelcomeStart.addEventListener('click', () => {
-                showWizardStep(1);
-            });
+        if (valProfileBlood) {
+            const bg = profile.blood_group || 'O+';
+            let bgDisplay = bg;
+            if (bg === 'O+' || bg.includes('O+')) bgDisplay = 'O+ (ओ पॉजिटिव)';
+            else if (bg === 'A+' || bg.includes('A+')) bgDisplay = 'A+ (ए पॉजिटिव)';
+            else if (bg === 'B+' || bg.includes('B+')) bgDisplay = 'B+ (बी पॉजिटिव)';
+            else if (bg === 'AB+' || bg.includes('AB+')) bgDisplay = 'AB+ (एबी पॉजिटिव)';
+            valProfileBlood.innerText = bgDisplay;
         }
 
-        if (!isOnboarded) {
-            showWelcomeScreen();
+        if (valProfileArea) {
+            valProfileArea.innerText = (profile.area && profile.area.trim())
+                ? (profile.area.includes('/') ? profile.area : `${profile.area} / राजौरी गार्डन, नई दिल्ली`)
+                : 'Rajouri Garden, New Delhi / राजौरी गार्डन, नई दिल्ली';
+        }
+
+        if (valProfilePhone) {
+            valProfilePhone.innerText = (profile.phone && profile.phone.trim())
+                ? profile.phone.trim()
+                : '+91 90123 45678';
+        }
+    }
+
+    function openSingleFieldEdit(fieldKey) {
+        const profile = getUserProfile();
+        if (!modalFieldEdit || !editFieldKey || !editFieldLabel || !editFieldInputContainer) return;
+
+        editFieldKey.value = fieldKey;
+        const fieldLabels = {
+            name: 'Full Name / पूरा नाम',
+            dob: 'Date of Birth / जन्म तिथि',
+            blood_group: 'Blood Group / ब्लड ग्रुप',
+            area: 'Local Area / स्थानीय इलाका'
+        };
+
+        if (modalFieldEditTitle) {
+            modalFieldEditTitle.innerText = `Edit ${fieldLabels[fieldKey] || 'Field'}`;
+        }
+        editFieldLabel.innerText = fieldLabels[fieldKey] || 'Field Value';
+
+        let inputHtml = '';
+        if (fieldKey === 'dob') {
+            const todayStr = new Date().toISOString().split('T')[0];
+            inputHtml = `<input type="date" id="edit-field-input" class="styled-input date-input" max="${todayStr}" value="${profile.dob || '1998-08-14'}" required>`;
+        } else if (fieldKey === 'blood_group') {
+            const currentBg = profile.blood_group || 'O+';
+            inputHtml = `
+            <select id="edit-field-input" class="styled-select" required>
+                <option value="A+" ${currentBg === 'A+' ? 'selected' : ''}>A+</option>
+                <option value="A-" ${currentBg === 'A-' ? 'selected' : ''}>A-</option>
+                <option value="B+" ${currentBg === 'B+' ? 'selected' : ''}>B+</option>
+                <option value="B-" ${currentBg === 'B-' ? 'selected' : ''}>B-</option>
+                <option value="AB+" ${currentBg === 'AB+' ? 'selected' : ''}>AB+</option>
+                <option value="AB-" ${currentBg === 'AB-' ? 'selected' : ''}>AB-</option>
+                <option value="O+" ${currentBg === 'O+' ? 'selected' : ''}>O+</option>
+                <option value="O-" ${currentBg === 'O-' ? 'selected' : ''}>O-</option>
+                <option value="Don't know" ${currentBg === "Don't know" ? 'selected' : ''}>Don't know / पता नहीं</option>
+            </select>
+        `;
         } else {
-            showDashboardScreen();
+            inputHtml = `<input type="text" id="edit-field-input" class="styled-input" value="${profile[fieldKey] || ''}" required>`;
+        }
+
+        editFieldInputContainer.innerHTML = inputHtml;
+        openModal(modalFieldEdit);
+    }
+
+    document.querySelectorAll('.btn-field-edit').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const field = btn.getAttribute('data-field');
+            if (field) {
+                openSingleFieldEdit(field);
+            }
+        });
+    });
+
+    if (btnCloseFieldEdit) {
+        btnCloseFieldEdit.addEventListener('click', () => closeModal(modalFieldEdit));
+    }
+    if (btnCancelFieldEdit) {
+        btnCancelFieldEdit.addEventListener('click', () => closeModal(modalFieldEdit));
+    }
+
+    if (formFieldEdit) {
+        formFieldEdit.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const key = editFieldKey ? editFieldKey.value : '';
+            const inputEl = document.getElementById('edit-field-input');
+            if (!key || !inputEl) return;
+            const val = inputEl.value.trim();
+            if (!val) {
+                alert('Field value cannot be empty.');
+                return;
+            }
+
+            if (key === 'dob' && isDateInFuture(val)) {
+                alert('Date of Birth cannot be in the future. / जन्म तिथि भविष्य की नहीं हो सकती।');
+                return;
+            }
+
+            const profile = getUserProfile();
+            profile[key] = val;
+            saveUserProfile(profile);
+            renderProfileCards();
+            populateProfileModal();
+            closeModal(modalFieldEdit);
+        });
+    }
+
+    if (btnChangeAvatar) {
+        btnChangeAvatar.addEventListener('click', () => {
+            alert('📷 Profile avatar picture updated. / प्रोफ़ाइल फ़ोटो अपडेट की गई।');
+        });
+    }
+
+    // Legacy profile modal helpers & handlers
+    function populateProfileModal() {
+        const profile = getUserProfile();
+        if (profileNameInput) profileNameInput.value = profile.name || '';
+        if (profileDobInput) profileDobInput.value = profile.dob || '';
+        if (profileBloodGroupSelect) profileBloodGroupSelect.value = profile.blood_group || '';
+        if (profileAreaInput) profileAreaInput.value = profile.area || '';
+    }
+
+    // Navigation to Dedicated Personal Details Screen
+    if (btnHeaderProfile) {
+        btnHeaderProfile.addEventListener('click', () => {
+            showProfileScreen();
+        });
+    }
+
+    const btnProfile = document.getElementById('btn-profile');
+    if (btnProfile && btnProfile !== btnHeaderProfile) {
+        btnProfile.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showProfileScreen();
+        });
+    }
+
+    if (btnProfileBack) {
+        btnProfileBack.addEventListener('click', showDashboardScreen);
+    }
+
+    if (btnCloseProfile) {
+        btnCloseProfile.addEventListener('click', () => closeModal(userProfileModal));
+    }
+
+    if (btnRevertProfile) {
+        btnRevertProfile.addEventListener('click', () => {
+            populateProfileModal();
+        });
+    }
+
+    if (btnSaveProfile) {
+        btnSaveProfile.addEventListener('click', () => {
+            const name = profileNameInput ? profileNameInput.value.trim() : '';
+            if (name.length < 2) {
+                alert('Please enter a valid full name (minimum 2 characters).');
+                return;
+            }
+
+            if (profileDobInput && isDateInFuture(profileDobInput.value)) {
+                alert('Date of Birth cannot be in the future. / जन्म तिथि भविष्य की नहीं हो सकती।');
+                return;
+            }
+
+            const updated = {
+                ...getUserProfile(),
+                name: name,
+                dob: profileDobInput ? profileDobInput.value : '',
+                blood_group: profileBloodGroupSelect ? profileBloodGroupSelect.value : '',
+                area: profileAreaInput ? profileAreaInput.value.trim() : ''
+            };
+
+            saveUserProfile(updated);
+            renderProfileCards();
+            closeModal(userProfileModal);
+        });
+    }
+
+    // =========================================================================
+    // APP INFO MODAL
+    // =========================================================================
+    if (btnHeaderInfo) {
+        btnHeaderInfo.addEventListener('click', () => openModal(infoModal));
+    }
+
+    const btnInfo = document.getElementById('btn-info');
+    if (btnInfo && btnInfo !== btnHeaderInfo) {
+        btnInfo.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openModal(infoModal);
+        });
+    }
+
+    if (btnCloseInfo) {
+        btnCloseInfo.addEventListener('click', () => closeModal(infoModal));
+    }
+
+    if (btnDismissInfo) {
+        btnDismissInfo.addEventListener('click', () => closeModal(infoModal));
+    }
+
+    // Modal background click dismissals
+    [modalTelegramGuide, modalContactSuccess, contactsModal, userProfileModal, infoModal].forEach(modal => {
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal(modal);
+                }
+            });
         }
     });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            [modalTelegramGuide, modalContactSuccess, contactsModal, userProfileModal, infoModal].forEach(closeModal);
+        }
+    });
+
+    // =========================================================================
+    // SOS TRIGGER LOGIC & HERO BUTTON (#btn-sos)
+    // =========================================================================
+    async function executeEmergencySos() {
+        const source = triggerSource || 'button';
+        triggerSource = 'button';
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (statusTime) statusTime.innerText = timeStr;
+        if (statusLocation) statusLocation.innerText = 'Acquiring GPS...';
+        if (statusTelegram) {
+            statusTelegram.innerText = 'Broadcasting...';
+            statusTelegram.className = 'metric-val pending';
+        }
+
+        // Switch to status screen
+        showStatusScreen();
+
+        // 1. Fetch live coordinates
+        currentLocation = await getUserLocation();
+
+        if (statusLocation) {
+            if (currentLocation && currentLocation.lat && currentLocation.lon) {
+                statusLocation.innerText = `${currentLocation.lat.toFixed(4)}, ${currentLocation.lon.toFixed(4)}`;
+            } else {
+                statusLocation.innerText = 'GPS Unavailable / Mocked';
+            }
+        }
+
+        const userName = getUserName();
+
+        // 2. Transmit /api/trigger payload with user_name
+        const triggerPayload = {
+            type: source,
+            trigger_type: source,
+            location: currentLocation,
+            user_name: userName
+        };
+
+        try {
+            fetch('/api/trigger', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(triggerPayload)
+            }).catch(e => console.error('Failed to call /api/trigger:', e));
+        } catch (e) {
+            console.error('Trigger call error:', e);
+        }
+
+        // 3. Transmit /api/alert/telegram payload with user_name
+        const alertPayload = {
+            type: 'button',
+            location: currentLocation,
+            user_name: userName
+        };
+
+        try {
+            const res = await fetch('/api/alert/telegram', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(alertPayload)
+            });
+            const data = await res.json();
+            if (data.status === 'sent') {
+                if (statusTelegram) {
+                    statusTelegram.innerText = `Sent (${data.recipients_sent || 1} recipients)`;
+                    statusTelegram.className = 'metric-val success';
+                }
+            } else {
+                if (statusTelegram) {
+                    statusTelegram.innerText = data.message || 'Alert Failed';
+                    statusTelegram.className = 'metric-val failed';
+                }
+            }
+        } catch (e) {
+            console.error('Alert broadcast error:', e);
+            if (statusTelegram) {
+                statusTelegram.innerText = 'Offline / Failed';
+                statusTelegram.className = 'metric-val failed';
+            }
+        }
+    }
+
+    if (btnSOS) {
+        let isHolding = false;
+        let triggeredByHold = false;
+        const HOLD_DURATION_MS = 1500;
+
+        function startSosHold(e) {
+            if (isHolding) return;
+            isHolding = true;
+            triggeredByHold = false;
+            btnSOS.classList.add('holding');
+
+            sosHoldTimeout = setTimeout(() => {
+                if (isHolding) {
+                    triggeredByHold = true;
+                    btnSOS.classList.remove('holding');
+                    btnSOS.classList.add('triggered');
+                    setTimeout(() => btnSOS.classList.remove('triggered'), 1000);
+                    isHolding = false;
+                    executeEmergencySos();
+                }
+            }, HOLD_DURATION_MS);
+        }
+
+        function cancelSosHold(e) {
+            if (!isHolding) return;
+            isHolding = false;
+            btnSOS.classList.remove('holding');
+            if (sosHoldTimeout) {
+                clearTimeout(sosHoldTimeout);
+                sosHoldTimeout = null;
+            }
+        }
+
+        // Desktop mouse press-and-hold
+        btnSOS.addEventListener('mousedown', (e) => {
+            if (e.button === 0) startSosHold(e);
+        });
+        btnSOS.addEventListener('mouseup', cancelSosHold);
+        btnSOS.addEventListener('mouseleave', cancelSosHold);
+
+        // Mobile touch press-and-hold
+        btnSOS.addEventListener('touchstart', (e) => {
+            startSosHold(e);
+        }, { passive: true });
+        btnSOS.addEventListener('touchend', cancelSosHold);
+        btnSOS.addEventListener('touchcancel', cancelSosHold);
+
+        // Instant click fallback for automated test suites (.click()) & quick click
+        btnSOS.addEventListener('click', (e) => {
+            if (triggeredByHold) {
+                triggeredByHold = false;
+                return;
+            }
+            cancelSosHold(e);
+            executeEmergencySos();
+        });
+    }
+
+    // =========================================================================
+    // INTERACTIVE SIREN CONTROLLER (Web Audio API Sound Synthesis)
+    // =========================================================================
+    let sirenAudioContext = null;
+    let sirenOscillator = null;
+    let sirenGainNode = null;
+    let sirenModInterval = null;
+    let isSirenActive = false;
+
+    function startSiren() {
+        if (isSirenActive) return;
+        isSirenActive = true;
+
+        if (btnSosSiren) {
+            btnSosSiren.classList.add('active');
+        }
+        if (sosSirenLabel) {
+            sosSirenLabel.textContent = 'Siren ON 🔊';
+        }
+        if (sirenCheckbox) {
+            sirenCheckbox.checked = true;
+        }
+
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+                if (!sirenAudioContext || sirenAudioContext.state === 'closed') {
+                    sirenAudioContext = new AudioCtx();
+                }
+                if (sirenAudioContext.state === 'suspended') {
+                    sirenAudioContext.resume();
+                }
+
+                sirenOscillator = sirenAudioContext.createOscillator();
+                sirenGainNode = sirenAudioContext.createGain();
+
+                sirenOscillator.type = 'sawtooth';
+                sirenOscillator.frequency.setValueAtTime(720, sirenAudioContext.currentTime);
+
+                // Safe audible level
+                sirenGainNode.gain.setValueAtTime(0.28, sirenAudioContext.currentTime);
+
+                sirenOscillator.connect(sirenGainNode);
+                sirenGainNode.connect(sirenAudioContext.destination);
+
+                sirenOscillator.start();
+
+                // High-low frequency alternating siren modulation
+                let toggleHigh = false;
+                sirenModInterval = setInterval(() => {
+                    if (!isSirenActive || !sirenOscillator || !sirenAudioContext) return;
+                    toggleHigh = !toggleHigh;
+                    const targetFreq = toggleHigh ? 960 : 660;
+                    try {
+                        sirenOscillator.frequency.cancelScheduledValues(sirenAudioContext.currentTime);
+                        sirenOscillator.frequency.linearRampToValueAtTime(
+                            targetFreq,
+                            sirenAudioContext.currentTime + 0.28
+                        );
+                    } catch (e) {
+                        sirenOscillator.frequency.setValueAtTime(targetFreq, sirenAudioContext.currentTime);
+                    }
+                }, 300);
+            }
+        } catch (e) {
+            console.warn('Web Audio API synthesis notice:', e);
+        }
+    }
+
+    function stopSiren() {
+        if (!isSirenActive) return;
+        isSirenActive = false;
+
+        if (btnSosSiren) {
+            btnSosSiren.classList.remove('active');
+        }
+        if (sosSirenLabel) {
+            sosSirenLabel.textContent = 'Siren OFF';
+        }
+        if (sirenCheckbox) {
+            sirenCheckbox.checked = false;
+        }
+
+        if (sirenModInterval) {
+            clearInterval(sirenModInterval);
+            sirenModInterval = null;
+        }
+
+        if (sirenOscillator) {
+            try {
+                sirenOscillator.stop();
+                sirenOscillator.disconnect();
+            } catch (e) { }
+            sirenOscillator = null;
+        }
+
+        if (sirenGainNode) {
+            try {
+                sirenGainNode.disconnect();
+            } catch (e) { }
+            sirenGainNode = null;
+        }
+    }
+
+    function toggleSiren() {
+        if (isSirenActive) {
+            stopSiren();
+        } else {
+            startSiren();
+        }
+    }
+
+    if (btnSosSiren) {
+        btnSosSiren.addEventListener('click', toggleSiren);
+    }
+    if (sirenCheckbox) {
+        sirenCheckbox.addEventListener('change', () => {
+            if (sirenCheckbox.checked) startSiren();
+            else stopSiren();
+        });
+    }
+
+    // =========================================================================
+    // SAKHI MULTI-LANGUAGE CHATBOT CONTROLLER (Features 16, 17, 18)
+    // =========================================================================
+    const SAKHI_LANGUAGES = {
+        en: {
+            code: 'en',
+            label: 'EN',
+            greeting: "Great! We'll chat in English. 😊\n\nHow are you feeling today? You can share anything with me—this is a safe space.",
+            chips: [
+                "Feeling stressed",
+                "Just want to vent",
+                "Need motivation",
+                "Can we do an exercise?"
+            ],
+            placeholder: "Type a message..."
+        },
+        hi: {
+            code: 'hi',
+            label: 'हिंदी',
+            greeting: "बहुत बढ़िया! अब से हम हिंदी में बात करेंगे। 😊\n\nआज आप कैसा महसूस कर रहे हैं? आप अपने दिल की बात बिना किसी संकोच के मुझसे साझा कर सकते हैं—यह बिल्कुल सुरक्षित जगह है।",
+            chips: [
+                "तनाव महसूस हो रहा है",
+                "बस बात करनी है",
+                "मोटिवेशन चाहिए",
+                "क्या कोई एक्सरसाइज करें?"
+            ],
+            placeholder: "अपनी बात यहाँ लिखें..."
+        },
+        hinglish: {
+            code: 'hinglish',
+            label: 'Hinglish',
+            greeting: "Sahi hai! Ab se hum Hinglish mein बात karenge. 😊\n\nAap aaj kaisa feel kar rahe ho? Jo bhi aapke dil mein ho, aap bina kisi darr ke share kar sakte ho—yeh bilkul safe aur private space hai.",
+            chips: [
+                "Stress ho raha hai",
+                "Bas vent karna hai",
+                "Motivation chahiye",
+                "Koi exercise karein?"
+            ],
+            placeholder: "Kuch type karein ya baat karein..."
+        }
+    };
+
+    let selectedSakhiLang = null;
+
+    function renderSakhiPromptChips(chips) {
+        if (!sakhiPromptChips) return;
+        sakhiPromptChips.innerHTML = '';
+        chips.forEach(chipText => {
+            const chipBtn = document.createElement('button');
+            chipBtn.type = 'button';
+            chipBtn.className = 'quick-chip';
+            chipBtn.textContent = chipText;
+            chipBtn.addEventListener('click', () => {
+                if (chatInput) {
+                    chatInput.value = chipText;
+                    handleSendChat();
+                }
+            });
+            sakhiPromptChips.appendChild(chipBtn);
+        });
+        sakhiPromptChips.classList.remove('hidden');
+    }
+
+    function selectSakhiLanguage(langKey) {
+        const langConfig = SAKHI_LANGUAGES[langKey];
+        if (!langConfig) return;
+        selectedSakhiLang = langKey;
+
+        if (currentLangIndicator) {
+            currentLangIndicator.textContent = langConfig.label;
+        }
+
+        // Switch views: hide language selection, show messages & chips
+        if (sakhiLangSelection) {
+            sakhiLangSelection.classList.add('hidden');
+        }
+        if (chatMessages) {
+            chatMessages.classList.remove('hidden');
+        }
+
+        // Enable input and set placeholder
+        if (chatInput) {
+            chatInput.disabled = false;
+            chatInput.placeholder = langConfig.placeholder;
+            chatInput.focus();
+        }
+        if (btnSendChat) {
+            btnSendChat.disabled = false;
+        }
+
+        // Render prompt chips
+        renderSakhiPromptChips(langConfig.chips);
+
+        // Render initial greeting if messages container is empty
+        if (chatMessages && chatMessages.children.length === 0) {
+            appendMessage(langConfig.greeting, 'bot');
+        }
+    }
+
+    function switchSakhiLanguagePrompt() {
+        if (sakhiLangSelection) {
+            sakhiLangSelection.classList.remove('hidden');
+        }
+        if (sakhiPromptChips) {
+            sakhiPromptChips.classList.add('hidden');
+        }
+        if (chatInput) {
+            chatInput.disabled = true;
+            chatInput.placeholder = "Select a language to start / शुरू करने के लिए भाषा चुनें";
+        }
+        if (btnSendChat) {
+            btnSendChat.disabled = true;
+        }
+    }
+
+    if (btnLangEn) {
+        btnLangEn.addEventListener('click', () => selectSakhiLanguage('en'));
+    }
+    if (btnLangHi) {
+        btnLangHi.addEventListener('click', () => selectSakhiLanguage('hi'));
+    }
+    if (btnLangHinglish) {
+        btnLangHinglish.addEventListener('click', () => selectSakhiLanguage('hinglish'));
+    }
+    if (btnChatSwitchLang) {
+        btnChatSwitchLang.addEventListener('click', switchSakhiLanguagePrompt);
+    }
+    if (btnChatInfo) {
+        btnChatInfo.addEventListener('click', () => {
+            if (infoModal) {
+                infoModal.classList.remove('hidden');
+            }
+        });
+    }
+
+    if (cardChatbot) {
+        cardChatbot.addEventListener('click', () => {
+            showChatScreen('daily');
+        });
+    }
+
+    if (btnBackChat) {
+        btnBackChat.addEventListener('click', showDashboardScreen);
+    }
+
+    if (btnViewStatus) {
+        btnViewStatus.addEventListener('click', showStatusScreen);
+    }
+
+    if (btnStatusBack) {
+        btnStatusBack.addEventListener('click', showDashboardScreen);
+    }
+
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            stopSiren();
+            currentMode = 'daily';
+            chatInitialized = false;
+            currentLocation = null;
+            if (statusTime) statusTime.innerText = '--:--';
+            if (statusLocation) statusLocation.innerText = 'Fetching...';
+            if (statusTelegram) {
+                statusTelegram.innerText = 'Pending';
+                statusTelegram.className = 'metric-val pending';
+            }
+            showDashboardScreen();
+        });
+    }
+
+    function appendMessage(text, sender, id = null) {
+        if (!chatMessages) return;
+        const msg = document.createElement('div');
+        msg.className = `message ${sender}`;
+        msg.innerText = text;
+        if (id) msg.id = id;
+        chatMessages.appendChild(msg);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return msg;
+    }
+
+    async function handleSendChat() {
+        if (!chatInput) return;
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        appendMessage(text, 'user');
+        chatInput.value = '';
+
+        const typingId = 'typing-' + Date.now();
+        appendMessage('Sakhi is typing...', 'bot', typingId);
+
+        try {
+            const payload = {
+                message: text,
+                session_id: sessionId,
+                mode: 'daily',
+                location: currentLocation
+            };
+
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const typingEl = document.getElementById(typingId);
+            if (typingEl) typingEl.remove();
+
+            if (res.ok) {
+                const data = await res.json();
+                appendMessage(data.reply || "I'm with you. How can I assist further?", 'bot');
+            } else {
+                appendMessage("I couldn't reach the server, but please stay calm and contact 112 if in danger.", 'bot');
+            }
+        } catch (e) {
+            console.error('Failed to send chat:', e);
+            const typingEl = document.getElementById(typingId);
+            if (typingEl) typingEl.remove();
+            appendMessage("Network connection issue. If this is an emergency, press SOS or call 112.", 'bot');
+        }
+    }
+
+    if (btnSendChat) btnSendChat.addEventListener('click', handleSendChat);
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSendChat();
+        });
+    }
+
+    // =========================================================================
+    // DEDICATED SIMPLE SOS CHAT CONTROLLER (Features 19, 20, 21)
+    // =========================================================================
+    function appendSosMessage(text, sender, id = null) {
+        if (!sosChatMessages) return;
+        const msg = document.createElement('div');
+        msg.className = `message ${sender}`;
+        msg.innerText = text;
+        if (id) msg.id = id;
+        sosChatMessages.appendChild(msg);
+        sosChatMessages.scrollTop = sosChatMessages.scrollHeight;
+        return msg;
+    }
+
+    async function handleSendSosChat(overrideText = null) {
+        const text = overrideText !== null ? overrideText.trim() : (sosChatInput ? sosChatInput.value.trim() : '');
+        if (!text) return;
+
+        appendSosMessage(text, 'user');
+        if (sosChatInput) sosChatInput.value = '';
+
+        const typingId = 'sos-typing-' + Date.now();
+        appendSosMessage('Sakhi is assessing emergency...', 'bot', typingId);
+
+        try {
+            const payload = {
+                message: text,
+                session_id: sessionId,
+                mode: 'emergency',
+                location: currentLocation
+            };
+
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const typingEl = document.getElementById(typingId);
+            if (typingEl) typingEl.remove();
+
+            if (res.ok) {
+                const data = await res.json();
+                appendSosMessage(data.reply || "Move to a well-lit area or guard immediately. Help is on the way.", 'bot');
+            } else {
+                appendSosMessage("Connection error: Agar aap kisi khatre mein hain, turant 112 par call karein ya aas-paas help maangein.", 'bot');
+            }
+        } catch (e) {
+            console.error('Failed to send SOS chat:', e);
+            const typingEl = document.getElementById(typingId);
+            if (typingEl) typingEl.remove();
+            appendSosMessage("Connection error: Agar aap kisi khatre mein hain, turant 112 par call karein ya aas-paas help maangein.", 'bot');
+        }
+    }
+
+    function handleSosChipClick(chipText) {
+        if (chipText.toLowerCase().includes('safe for now') || chipText.includes('सुरक्षित')) {
+            stopSiren();
+            appendSosMessage(chipText, 'user');
+            appendSosMessage("I'm so glad to hear that you are safe! Take a deep breath. You can tap 'View Alert Status' or return to the dashboard standby whenever you are ready.", 'bot');
+            return;
+        }
+
+        handleSendSosChat(chipText);
+    }
+
+    if (btnSosChatBack) {
+        btnSosChatBack.addEventListener('click', showDashboardScreen);
+    }
+
+    if (btnSendSosChat) {
+        btnSendSosChat.addEventListener('click', () => handleSendSosChat());
+    }
+
+    if (sosChatInput) {
+        sosChatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSendSosChat();
+        });
+    }
+
+    if (sosEmergencyChips) {
+        const chips = sosEmergencyChips.querySelectorAll('.sos-quick-chip');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const msg = chip.getAttribute('data-msg') || chip.innerText.trim();
+                handleSosChipClick(msg);
+            });
+        });
+    }
+
+    if (btnSosViewStatus) {
+        btnSosViewStatus.addEventListener('click', showStatusScreen);
+    }
+
+    if (btnStatusOpenSosChat) {
+        btnStatusOpenSosChat.addEventListener('click', showSosChatScreen);
+    }
+
+    async function fetchLiveAlertStatus() {
+        try {
+            const res = await fetch('/api/alert/status');
+            const data = await res.json();
+            if (statusTelegram) {
+                if (data.status === 'healthy') {
+                    statusTelegram.innerText = 'Connected & Ready';
+                    statusTelegram.className = 'metric-val success';
+                } else {
+                    statusTelegram.innerText = 'Unconfigured';
+                    statusTelegram.className = 'metric-val pending';
+                }
+            }
+        } catch (e) {
+            console.error('Status fetch error:', e);
+        }
+    }
+
+    // =========================================================================
+    // INITIALIZATION ENTRY POINT
+    // =========================================================================
+    const isOnboarded = localStorage.getItem(ONBOARDED_KEY);
+    if (btnWelcomeStart) {
+        btnWelcomeStart.addEventListener('click', () => {
+            showWizardStep(1);
+        });
+    }
+
+    if (!isOnboarded) {
+        showWelcomeScreen();
+    } else {
+        showDashboardScreen();
+    }
+});
