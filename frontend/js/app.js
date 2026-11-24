@@ -449,6 +449,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSosChatBack = document.getElementById('btn-sos-chat-back');
     const btnSosSiren = document.getElementById('btn-sos-siren');
     const sosSirenLabel = document.getElementById('sos-siren-label');
+    const btnStatusSiren = document.getElementById('btn-status-siren');
+    const statusSirenLabel = document.getElementById('status-siren-label');
     const sirenCheckbox = document.getElementById('siren-checkbox');
     const sosChatMessages = document.getElementById('sos-chat-messages');
     const sosEmergencyChips = document.getElementById('sos-emergency-chips');
@@ -471,25 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentLocation = null;
     let triggerSource = 'button'; // becomes 'voice' when the keyword detector fires
 
-    // ==========================================================
-    // Siren
-    // ==========================================================
-    const sirenAudio = new Audio('/assets/audio/siren.mp3');
-    sirenAudio.loop = true;
-
-    function setSiren(on) {
-        if (on) {
-            sirenAudio.play().catch(e => console.error('Siren blocked by browser:', e));
-        } else {
-            sirenAudio.pause();
-            sirenAudio.currentTime = 0;
-        }
-        if (sirenCheckbox) sirenCheckbox.checked = on;
-    }
-
-    if (sirenCheckbox) {
-        sirenCheckbox.addEventListener('change', () => setSiren(sirenCheckbox.checked));
-    }
+    // Siren is managed by the single Web Audio API controller (startSiren / stopSiren / toggleSiren)
 
     // ==========================================================
     // Voice trigger ("help" keyword) - needs tfjs-voice.js loaded in index.html
@@ -556,7 +540,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     triggerTimestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     if (statusTime) statusTime.innerText = triggerTimestamp;
                     currentMode = 'emergency';
-                    setSiren(true);
                     triggerSource = 'voice';
                     if (btnSOS) {
                         btnSOS.classList.add('triggered');
@@ -1075,7 +1058,6 @@ document.addEventListener('DOMContentLoaded', () => {
             triggerTimestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             if (statusTime) statusTime.innerText = triggerTimestamp;
             currentMode = 'emergency';
-            setSiren(true); // start the siren immediately, don't wait for GPS
             triggerSource = 'button';
             executeEmergencySos();
         });
@@ -2365,6 +2347,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sosSirenLabel) {
             sosSirenLabel.textContent = 'Siren ON 🔊';
         }
+        if (btnStatusSiren) {
+            btnStatusSiren.classList.add('active');
+        }
+        if (statusSirenLabel) {
+            statusSirenLabel.textContent = 'Siren ON 🔊';
+        }
         if (sirenCheckbox) {
             sirenCheckbox.checked = true;
         }
@@ -2425,6 +2413,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sosSirenLabel) {
             sosSirenLabel.textContent = 'Siren OFF';
         }
+        if (btnStatusSiren) {
+            btnStatusSiren.classList.remove('active');
+        }
+        if (statusSirenLabel) {
+            statusSirenLabel.textContent = 'Siren OFF';
+        }
         if (sirenCheckbox) {
             sirenCheckbox.checked = false;
         }
@@ -2460,6 +2454,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnSosSiren) {
         btnSosSiren.addEventListener('click', toggleSiren);
+    }
+    if (btnStatusSiren) {
+        btnStatusSiren.addEventListener('click', toggleSiren);
     }
     if (sirenCheckbox) {
         sirenCheckbox.addEventListener('change', () => {
@@ -2764,7 +2761,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnSosChatBack) {
-        btnSosChatBack.addEventListener('click', showDashboardScreen);
+        btnSosChatBack.addEventListener('click', showStatusScreen);
     }
 
     if (btnSendSosChat) {

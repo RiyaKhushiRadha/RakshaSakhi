@@ -1029,7 +1029,7 @@
         <section id="screen-sos-chat" class="screen-view hidden" aria-label="Dedicated Simple SOS Chat">
             <div class="sos-chat-top-bar">
                 <button type="button" id="btn-sos-chat-back" class="btn-chat-back-circle"
-                    aria-label="Back to Dashboard">←</button>
+                    aria-label="Back to Emergency Status">←</button>
                 <div class="brand-mini-center">
                     <span class="brand-mini-shield">🛡️</span>
                     <span class="brand-mini-title sos-title">RakshaSakhi</span>
@@ -1078,11 +1078,6 @@
                 <button type="button" id="btn-send-sos-chat" class="btn-send-sos"
                     aria-label="Send Emergency Message">➔</button>
             </div>
-
-            <div class="sos-bottom-actions">
-                <button type="button" id="btn-sos-view-status" class="link-status-view">View Alert Status / अलर्ट स्थिति
-                    देखें</button>
-            </div>
         </section>
 
         <!-- ========================================================== -->
@@ -1092,6 +1087,12 @@
             <div class="status-top-bar">
                 <button type="button" id="btn-status-back" class="btn-chat-back">← Back</button>
                 <h3 class="status-heading">Emergency Status</h3>
+                <!-- Interactive Siren Toggle (Start / Stop) Button -->
+                <button type="button" id="btn-status-siren" class="btn-siren-toggle" aria-label="Toggle Siren Alarm"
+                    title="Toggle Safety Siren">
+                    <span class="siren-icon">🚨</span>
+                    <span id="status-siren-label" class="siren-label-text">Siren OFF</span>
+                </button>
             </div>
 
             <div class="glass-status-tile">
