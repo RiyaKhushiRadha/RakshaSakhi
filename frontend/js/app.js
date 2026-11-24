@@ -13,6 +13,230 @@ document.addEventListener('DOMContentLoaded', () => {
         phone: '+91 90123 45678'
     };
 
+    const DEVANAGARI_NAME_MAP = {
+        'priya': 'प्रिया', 'sharma': 'शर्मा', 'khushi': 'खुशी', 'verma': 'वर्मा',
+        'varma': 'वर्मा', 'pooja': 'पूजा', 'puja': 'पूजा', 'singh': 'सिंह',
+        'neha': 'नेहा', 'gupta': 'गुप्ता', 'ananya': 'अनन्या', 'roy': 'रॉय',
+        'rahul': 'राहुल', 'kumar': 'कुमार', 'rohit': 'रोहित', 'mishra': 'मिश्रा',
+        'amit': 'अमित', 'yadav': 'यादव', 'aman': 'अमन', 'patel': 'पटेल',
+        'sneha': 'स्नेहा', 'joshi': 'जोशी', 'anjali': 'अंजलि', 'mehta': 'मेहता',
+        'radha': 'राधा', 'shukla': 'शुक्ला', 'deepak': 'दीपक', 'tiwari': 'तिवारी',
+        'aditi': 'अदिति', 'pandey': 'पांडे', 'kavita': 'कविता', 'choudhary': 'चौधरी',
+        'das': 'दास', 'jain': 'जैन', 'swati': 'स्वाति', 'agarwal': 'अग्रवाल',
+        'divya': 'दिव्या', 'bhatia': 'भाटिया', 'sakshi': 'साक्षी', 'saxena': 'सक्सेना',
+        'riya': 'रिया', 'simran': 'सिमरन', 'kiran': 'किरण', 'nisha': 'निशा',
+        'aarti': 'आरती', 'arti': 'आरती', 'meena': 'मीना', 'geeta': 'गीता',
+        'gita': 'गीता', 'seema': 'सीमा', 'mona': 'मोना', 'sonia': 'सोनिया',
+        'sonam': 'सोनम', 'payal': 'पायल', 'shreya': 'श्रेया', 'tanvi': 'तन्वी',
+        'jyoti': 'ज्योति', 'preeti': 'प्रीति', 'priti': 'प्रीति', 'komal': 'कोमल',
+        'rashmi': 'रश्मि', 'kajal': 'काजल', 'pinki': 'पिंकी', 'pinky': 'पिंकी',
+        'rani': 'रानी', 'sheetal': 'शीतल', 'sunita': 'सुनीता', 'rekha': 'रेखा',
+        'anita': 'अनिता', 'poonam': 'पूनम', 'manisha': 'मनीषा', 'alka': 'अलका',
+        'bhavna': 'भावना', 'deepa': 'दीपा', 'deepika': 'दीपिका', 'mamta': 'ममता'
+    };
+
+    // =========================================================================
+    // GENERAL PHONETIC DEVANAGARI TRANSLITERATOR
+    // =========================================================================
+    const PHONETIC_CONSONANTS = [
+        ['ksh', 'क्ष'], ['shh', 'ष'], ['chh', 'छ'], ['ch', 'च'], ['jh', 'झ'],
+        ['kh', 'ख'], ['gh', 'घ'], ['th', 'थ'], ['dh', 'ध'], ['bh', 'भ'],
+        ['ph', 'फ'], ['sh', 'श'], ['wh', 'व'], ['ck', 'क'], ['tr', 'त्र'],
+        ['gy', 'ज्ञ'], ['gn', 'ज्ञ'], ['ng', 'ङ'],
+        ['k', 'क'], ['g', 'ग'], ['c', 'क'], ['j', 'ज'], ['z', 'ज़'],
+        ['t', 'त'], ['d', 'द'], ['n', 'न'], ['p', 'प'], ['f', 'फ़'],
+        ['b', 'ब'], ['m', 'म'], ['y', 'य'], ['r', 'र'], ['l', 'ल'],
+        ['v', 'व'], ['w', 'व'], ['s', 'स'], ['h', 'ह'], ['x', 'क्स'],
+        ['q', 'क']
+    ];
+
+    const PHONETIC_INITIAL_VOWELS = [
+        ['aa', 'आ'], ['ee', 'ई'], ['oo', 'ऊ'], ['ai', 'ऐ'], ['au', 'औ'],
+        ['ou', 'औ'], ['ea', 'ई'], ['a', 'अ'], ['i', 'इ'], ['u', 'उ'],
+        ['e', 'ए'], ['o', 'ओ']
+    ];
+
+    const PHONETIC_MATRAS = [
+        ['aa', 'ा'], ['ee', 'ी'], ['oo', 'ू'], ['ai', 'ै'], ['au', 'ौ'],
+        ['ou', 'ौ'], ['ea', 'ी'], ['a', ''], ['i', 'ि'], ['u', 'ु'],
+        ['e', 'े'], ['o', 'ो']
+    ];
+
+    function phoneticToDevanagariWord(word) {
+        if (!word) return '';
+        const lower = word.toLowerCase();
+        let i = 0;
+        const len = lower.length;
+        let out = '';
+        let isStart = true;
+
+        while (i < len) {
+            if (isStart) {
+                let matchedVowel = false;
+                for (const [seq, dev] of PHONETIC_INITIAL_VOWELS) {
+                    if (lower.startsWith(seq, i)) {
+                        out += dev;
+                        i += seq.length;
+                        matchedVowel = true;
+                        isStart = false;
+                        break;
+                    }
+                }
+                if (matchedVowel) continue;
+            }
+
+            let matchedConsonant = false;
+            for (const [seq, dev] of PHONETIC_CONSONANTS) {
+                if (lower.startsWith(seq, i)) {
+                    out += dev;
+                    i += seq.length;
+                    matchedConsonant = true;
+                    isStart = false;
+
+                    let matchedMatra = false;
+                    for (const [vSeq, matra] of PHONETIC_MATRAS) {
+                        if (lower.startsWith(vSeq, i)) {
+                            out += matra;
+                            i += vSeq.length;
+                            matchedMatra = true;
+                            break;
+                        }
+                    }
+
+                    if (!matchedMatra && i < len) {
+                        const nextChar = lower[i];
+                        const isNextConsonant = PHONETIC_CONSONANTS.some(([cSeq]) => lower.startsWith(cSeq, i));
+                        if (isNextConsonant) {
+                            out += '्'; // Halant / Virama for conjunct consonants
+                        }
+                    }
+                    break;
+                }
+            }
+            if (matchedConsonant) continue;
+
+            let matchedVowelMid = false;
+            for (const [seq, dev] of PHONETIC_INITIAL_VOWELS) {
+                if (lower.startsWith(seq, i)) {
+                    out += dev;
+                    i += seq.length;
+                    matchedVowelMid = true;
+                    break;
+                }
+            }
+            if (matchedVowelMid) continue;
+
+            out += lower[i];
+            i++;
+            isStart = false;
+        }
+
+        return out;
+    }
+
+    function transliteratePhoneticText(text) {
+        if (!text) return '';
+        if (/[\u0900-\u097F]/.test(text)) return text;
+        return text.replace(/[a-zA-Z]+/g, (match) => {
+            const lower = match.toLowerCase();
+            if (DEVANAGARI_NAME_MAP[lower]) return DEVANAGARI_NAME_MAP[lower];
+            if (DEVANAGARI_AREA_MAP[lower]) return DEVANAGARI_AREA_MAP[lower];
+            return phoneticToDevanagariWord(match);
+        });
+    }
+
+    function transliterateNameToHindi(nameStr) {
+        if (!nameStr) return '';
+        const trimmed = nameStr.trim();
+        if (/[\u0900-\u097F]/.test(trimmed)) return trimmed;
+        return transliteratePhoneticText(trimmed);
+    }
+
+    function getBilingualProfileNames(profile) {
+        const rawName = (profile && profile.name) ? profile.name.trim() : '';
+        if (!rawName) {
+            return {
+                en: 'Priya Sharma',
+                hi: 'प्रिया शर्मा',
+                display: 'Priya Sharma (प्रिया शर्मा)',
+                fieldVal: 'Priya Sharma / प्रिया शर्मा'
+            };
+        }
+        let enName = rawName;
+        let hiName = (profile && profile.name_hi) ? profile.name_hi.trim() : '';
+
+        if (rawName.includes('(') && rawName.includes(')')) {
+            const parts = rawName.split('(');
+            enName = parts[0].trim();
+            hiName = parts[1].replace(')', '').trim();
+        } else if (rawName.includes('/')) {
+            const parts = rawName.split('/');
+            enName = parts[0].trim();
+            hiName = parts[1].trim();
+        }
+
+        if (!hiName) {
+            const autoHindi = transliterateNameToHindi(enName);
+            hiName = autoHindi || '';
+        }
+
+        const display = (hiName && hiName !== enName) ? `${enName} (${hiName})` : enName;
+        const fieldVal = (hiName && hiName !== enName) ? `${enName} / ${hiName}` : enName;
+        return { en: enName, hi: hiName, display, fieldVal };
+    }
+
+    const DEVANAGARI_AREA_MAP = {
+        'rajouri': 'राजौरी', 'garden': 'गार्डन', 'delhi': 'दिल्ली', 'new': 'नई',
+        'rohini': 'रोहिणी', 'dwarka': 'द्वारका', 'karol': 'करोल', 'bagh': 'बाग',
+        'connaught': 'कनॉट', 'place': 'प्लेस', 'saket': 'साकेत', 'hauz': 'हौज़',
+        'khas': 'खास', 'lajpat': 'लाजपत', 'nagar': 'नगर', 'pitampura': 'पीतमपुरा',
+        'janakpuri': 'जनकपुरी', 'chandni': 'चांदनी', 'chowk': 'चौक', 'vasant': 'वसंत',
+        'kunj': 'कुंज', 'vihar': 'विहार', 'noida': 'नोएडा', 'gurugram': 'गुरुग्राम',
+        'gurgaon': 'गुड़गांव', 'faridabad': 'फरीदाबाद', 'ghaziabad': 'गाजियाबाद',
+        'east': 'पूर्व', 'west': 'पश्चिम', 'north': 'उत्तर', 'south': 'दक्षिण',
+        'mumbai': 'मुंबई', 'andheri': 'अंधेरी', 'bandra': 'बांद्रा', 'pune': 'पुणे',
+        'bengaluru': 'बेंगलुरु', 'bangalore': 'बैंगलोर', 'kolkata': 'कोलकाता',
+        'jaipur': 'जयपुर', 'lucknow': 'लखनऊ', 'kanpur': 'कानपुर', 'patna': 'पटना',
+        'bhopal': 'भोपाल', 'indore': 'इंदौर', 'agra': 'आगरा', 'varanasi': 'वाराणसी',
+        'sec': 'सेक्टर', 'sector': 'सेक्टर', 'phase': 'फेज', 'block': 'ब्लॉक',
+        'road': 'रोड', 'street': 'गली', 'lane': 'लेन', 'colony': 'कॉलोनी',
+        'market': 'मार्केट', 'bazar': 'बाज़ार', 'bazaar': 'बाज़ार'
+    };
+
+    function transliterateAreaToHindi(areaStr) {
+        if (!areaStr) return '';
+        const trimmed = areaStr.trim();
+        if (/[\u0900-\u097F]/.test(trimmed)) return trimmed;
+        return transliteratePhoneticText(trimmed);
+    }
+
+    function getBilingualProfileArea(profile) {
+        const rawArea = (profile && profile.area) ? profile.area.trim() : '';
+        if (!rawArea) {
+            return {
+                en: 'Rajouri Garden, New Delhi',
+                hi: 'राजौरी गार्डन, नई दिल्ली',
+                fieldVal: 'Rajouri Garden, New Delhi / राजौरी गार्डन, नई दिल्ली'
+            };
+        }
+        let enArea = rawArea;
+        let hiArea = (profile && profile.area_hi) ? profile.area_hi.trim() : '';
+
+        if (rawArea.includes('/')) {
+            const parts = rawArea.split('/');
+            enArea = parts[0].trim();
+            hiArea = parts[1].trim();
+        }
+
+        if (!hiArea) {
+            const autoHindi = transliterateAreaToHindi(enArea);
+            hiArea = autoHindi || '';
+        }
+
+        const fieldVal = (hiArea && hiArea !== enArea) ? `${enArea} / ${hiArea}` : enArea;
+        return { en: enArea, hi: hiArea, fieldVal };
+    }
+
     function getUserProfile() {
         try {
             const raw = localStorage.getItem(PROFILE_KEY);
@@ -1675,16 +1899,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderProfileCards() {
         const profile = getUserProfile();
 
+        const bilingual = getBilingualProfileNames(profile);
+
         if (displayProfileName) {
-            displayProfileName.innerText = (profile.name && profile.name.trim())
-                ? (profile.name.includes('(') ? profile.name : `${profile.name} (प्रिया शर्मा)`)
-                : 'Priya Sharma (प्रिया शर्मा)';
+            displayProfileName.innerText = bilingual.display;
         }
 
         if (valProfileName) {
-            valProfileName.innerText = (profile.name && profile.name.trim())
-                ? (profile.name.includes('/') ? profile.name : `${profile.name} / प्रिया शर्मा`)
-                : 'Priya Sharma / प्रिया शर्मा';
+            valProfileName.innerText = bilingual.fieldVal;
         }
 
         if (valProfileDob) {
@@ -1710,10 +1932,9 @@ document.addEventListener('DOMContentLoaded', () => {
             valProfileBlood.innerText = bgDisplay;
         }
 
+        const bilingualArea = getBilingualProfileArea(profile);
         if (valProfileArea) {
-            valProfileArea.innerText = (profile.area && profile.area.trim())
-                ? (profile.area.includes('/') ? profile.area : `${profile.area} / राजौरी गार्डन, नई दिल्ली`)
-                : 'Rajouri Garden, New Delhi / राजौरी गार्डन, नई दिल्ली';
+            valProfileArea.innerText = bilingualArea.fieldVal;
         }
 
         if (valProfilePhone) {
@@ -1741,7 +1962,27 @@ document.addEventListener('DOMContentLoaded', () => {
         editFieldLabel.innerText = fieldLabels[fieldKey] || 'Field Value';
 
         let inputHtml = '';
-        if (fieldKey === 'dob') {
+        if (fieldKey === 'name') {
+            const b = getBilingualProfileNames(profile);
+            inputHtml = `
+            <div class="bilingual-name-input-group">
+                <label class="styled-label-sub" for="edit-field-input" style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:4px;">English Full Name / अंग्रेज़ी नाम</label>
+                <input type="text" id="edit-field-input" class="styled-input mb-2" value="${b.en}" placeholder="e.g. Priya Sharma" maxlength="50" required>
+                <label class="styled-label-sub" for="edit-field-input-hi" style="display:block; font-size:12px; color:var(--text-muted); margin-top:10px; margin-bottom:4px;">Hindi Name / हिंदी में नाम</label>
+                <input type="text" id="edit-field-input-hi" class="styled-input" value="${b.hi && b.hi !== b.en ? b.hi : ''}" placeholder="उदा. प्रिया शर्मा" maxlength="50">
+            </div>
+            `;
+        } else if (fieldKey === 'area') {
+            const bArea = getBilingualProfileArea(profile);
+            inputHtml = `
+            <div class="bilingual-area-input-group">
+                <label class="styled-label-sub" for="edit-field-input" style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:4px;">Local Area / स्थानीय इलाका (English)</label>
+                <input type="text" id="edit-field-input" class="styled-input mb-2" value="${bArea.en}" placeholder="e.g. Rohini, New Delhi" maxlength="80" required>
+                <label class="styled-label-sub" for="edit-field-input-hi" style="display:block; font-size:12px; color:var(--text-muted); margin-top:10px; margin-bottom:4px;">Area in Hindi / हिंदी में इलाका</label>
+                <input type="text" id="edit-field-input-hi" class="styled-input" value="${bArea.hi && bArea.hi !== bArea.en ? bArea.hi : ''}" placeholder="उदा. रोहिणी, नई दिल्ली" maxlength="80">
+            </div>
+            `;
+        } else if (fieldKey === 'dob') {
             const todayStr = new Date().toISOString().split('T')[0];
             inputHtml = `<input type="date" id="edit-field-input" class="styled-input date-input" max="${todayStr}" value="${profile.dob || '1998-08-14'}" required>`;
         } else if (fieldKey === 'blood_group') {
@@ -1764,6 +2005,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         editFieldInputContainer.innerHTML = inputHtml;
+
+        // Auto-transliterate Hindi name or area in real-time
+        if (fieldKey === 'name') {
+            const enInput = document.getElementById('edit-field-input');
+            const hiInput = document.getElementById('edit-field-input-hi');
+            if (enInput && hiInput) {
+                enInput.addEventListener('input', () => {
+                    const trimmed = enInput.value.trim();
+                    if (!trimmed) {
+                        hiInput.value = '';
+                    } else {
+                        const transliterated = transliterateNameToHindi(enInput.value);
+                        hiInput.value = transliterated;
+                    }
+                });
+            }
+        } else if (fieldKey === 'area') {
+            const enInput = document.getElementById('edit-field-input');
+            const hiInput = document.getElementById('edit-field-input-hi');
+            if (enInput && hiInput) {
+                enInput.addEventListener('input', () => {
+                    const trimmed = enInput.value.trim();
+                    if (!trimmed) {
+                        hiInput.value = '';
+                    } else {
+                        const transliterated = transliterateAreaToHindi(enInput.value);
+                        hiInput.value = transliterated;
+                    }
+                });
+            }
+        }
+
         openModal(modalFieldEdit);
     }
 
@@ -1803,6 +2076,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const profile = getUserProfile();
             profile[key] = val;
+            if (key === 'name') {
+                const hiInput = document.getElementById('edit-field-input-hi');
+                const hiVal = hiInput ? hiInput.value.trim() : '';
+                profile.name_hi = hiVal || transliterateNameToHindi(val);
+            } else if (key === 'area') {
+                const hiInput = document.getElementById('edit-field-input-hi');
+                const hiVal = hiInput ? hiInput.value.trim() : '';
+                profile.area_hi = hiVal || transliterateAreaToHindi(val);
+            }
             saveUserProfile(profile);
             renderProfileCards();
             populateProfileModal();
@@ -1870,9 +2152,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const updated = {
                 ...getUserProfile(),
                 name: name,
+                name_hi: transliterateNameToHindi(name),
                 dob: profileDobInput ? profileDobInput.value : '',
                 blood_group: profileBloodGroupSelect ? profileBloodGroupSelect.value : '',
-                area: profileAreaInput ? profileAreaInput.value.trim() : ''
+                area: profileAreaInput ? profileAreaInput.value.trim() : '',
+                area_hi: profileAreaInput ? transliterateAreaToHindi(profileAreaInput.value.trim()) : ''
             };
 
             saveUserProfile(updated);
