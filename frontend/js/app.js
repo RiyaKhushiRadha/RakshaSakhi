@@ -483,6 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const voiceMicIcon = document.getElementById('voice-mic-icon');
     const voiceStatusText = document.getElementById('voice-status-text');
     let voiceOn = false;
+    let voiceStartTimer = null;
 
     function updateVoiceTriggerUI(state) {
         if (!voiceTriggerBtn) return;
@@ -518,43 +519,77 @@ document.addEventListener('DOMContentLoaded', () => {
             updateVoiceTriggerUI('error');
             return;
         }
-        if (voiceOn) {
-            VoiceTrigger.stop();
+        const hasActiveClass = !!(voiceTriggerBtn && (voiceTriggerBtn.classList.contains('active') || voiceTriggerBtn.classList.contains('listening')));
+        const isListeningNow = voiceOn || (typeof VoiceTrigger.isListening === 'function' && VoiceTrigger.isListening()) || hasActiveClass;
+        if (isListeningNow) {
+            if (voiceStartTimer) {
+                clearTimeout(voiceStartTimer);
+                voiceStartTimer = null;
+            }
+            try {
+                VoiceTrigger.stop();
+            } catch (e) {
+                console.warn('VoiceTrigger stop notice:', e);
+            }
             voiceOn = false;
             updateVoiceTriggerUI('off');
             return;
         }
         try {
-            updateVoiceTriggerUI('loading');
-            await VoiceTrigger.start({
-                onStatus: () => {
-                    if (typeof VoiceTrigger !== 'undefined' && VoiceTrigger.isListening()) {
-                        updateVoiceTriggerUI('listening');
-                    } else {
-                        updateVoiceTriggerUI('loading');
+            const isAlreadyReady = typeof VoiceTrigger.isReady === 'function' && VoiceTrigger.isReady();
+            if (!isAlreadyReady) {
+                updateVoiceTriggerUI('loading');
+            }
+            await Promise.race([
+                VoiceTrigger.start({
+                    onStatus: () => {
+                        if (typeof VoiceTrigger !== 'undefined' && VoiceTrigger.isListening()) {
+                            voiceOn = true;
+                            updateVoiceTriggerUI('listening');
+                        }
+                    },
+                    onTrigger: () => {
+                        if (!voiceOn || (typeof VoiceTrigger.isListening === 'function' && !VoiceTrigger.isListening())) {
+                            console.log('⚠️ Voice trigger ignored because Audio Alert is OFF');
+                            return;
+                        }
+                        console.log('🚨 VOICE KEYWORD "HELP" DETECTED - EXECUTING IMMEDIATE SOS ALERT');
+                        const now = new Date();
+                        triggerTimestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        if (statusTime) statusTime.innerText = triggerTimestamp;
+                        currentMode = 'emergency';
+                        triggerSource = 'voice';
+                        if (btnSOS) {
+                            btnSOS.classList.add('triggered');
+                            setTimeout(() => btnSOS.classList.remove('triggered'), 1000);
+                        }
+                        // Immediate execution of emergency SOS alert pipeline with zero delay
+                        executeEmergencySos();
                     }
-                },
-                onTrigger: () => {
-                    console.log('🚨 VOICE KEYWORD "HELP" DETECTED - EXECUTING IMMEDIATE SOS ALERT');
-                    const now = new Date();
-                    triggerTimestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    if (statusTime) statusTime.innerText = triggerTimestamp;
-                    currentMode = 'emergency';
-                    triggerSource = 'voice';
-                    if (btnSOS) {
-                        btnSOS.classList.add('triggered');
-                        setTimeout(() => btnSOS.classList.remove('triggered'), 1000);
-                    }
-                    // Immediate execution of emergency SOS alert pipeline with zero delay
-                    executeEmergencySos();
+                }),
+                new Promise((_, reject) => {
+                    voiceStartTimer = setTimeout(() => reject(new Error('Voice trigger start timed out')), 25000);
+                })
+            ]).finally(() => {
+                if (voiceStartTimer) {
+                    clearTimeout(voiceStartTimer);
+                    voiceStartTimer = null;
                 }
             });
             voiceOn = true;
             updateVoiceTriggerUI('listening');
         } catch (err) {
+            if (typeof VoiceTrigger !== 'undefined' && typeof VoiceTrigger.isListening === 'function' && VoiceTrigger.isListening()) {
+                voiceOn = true;
+                updateVoiceTriggerUI('listening');
+                return;
+            }
             console.error('Voice trigger failed:', err);
             voiceOn = false;
             updateVoiceTriggerUI('error');
+            setTimeout(() => {
+                if (!voiceOn) updateVoiceTriggerUI('off');
+            }, 2500);
         }
     }
 
@@ -563,6 +598,29 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (voiceIndicator) {
         voiceIndicator.addEventListener('click', toggleVoiceDetection);
     }
+
+    // Eagerly preload voice model in the background on dashboard / page load
+    let voicePreloadStarted = false;
+    async function preloadVoiceModel() {
+        if (voicePreloadStarted) return;
+        if (typeof VoiceTrigger === 'undefined' || typeof VoiceTrigger.preload !== 'function') {
+            return;
+        }
+        voicePreloadStarted = true;
+        console.log('[VoiceTrigger] Starting background voice model preload...');
+        try {
+            await VoiceTrigger.preload((status) => {
+                console.log('[VoiceTrigger] Preload status:', status);
+            });
+            console.log('[VoiceTrigger] Background voice model preload complete (ready for instant activation).');
+        } catch (err) {
+            console.warn('[VoiceTrigger] Background preload skipped or failed (will retry on mic tap):', err);
+        }
+    }
+
+    // Trigger non-blocking background preload on page load, keeping button clean and ready
+    updateVoiceTriggerUI('off');
+    preloadVoiceModel();
 
     // =========================================================================
     // GEOLOCATION UTILITIES
@@ -2621,6 +2679,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnReset) {
         btnReset.addEventListener('click', () => {
             stopSiren();
+            if (voiceStartTimer) {
+                clearTimeout(voiceStartTimer);
+                voiceStartTimer = null;
+            }
+            if (typeof VoiceTrigger !== 'undefined' && typeof VoiceTrigger.stop === 'function') {
+                try {
+                    VoiceTrigger.stop();
+                } catch (e) {
+                    console.warn('VoiceTrigger stop notice on reset:', e);
+                }
+            }
+            voiceOn = false;
+            updateVoiceTriggerUI('off');
             currentMode = 'daily';
             chatInitialized = false;
             currentLocation = null;
