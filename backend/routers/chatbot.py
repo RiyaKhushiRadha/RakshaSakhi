@@ -21,6 +21,7 @@ async def chat_interaction(request: ChatRequest):
         user_message=request.message,
         session_id=request.session_id or "default",
         mode=request.mode or "daily",
+        language=request.language,
         location=request.location
     )
     return {

@@ -176,6 +176,24 @@ FALLBACK_MESSAGES = {
     "emergency_error": "Connection error: Agar aap kisi khatre mein hain, turant 112 par call karein ya aas-paas help maangein.",
 }
 
+DAILY_LANGUAGE_INSTRUCTIONS = {
+    "en": (
+        "\n[SELECTED LANGUAGE: English]\n"
+        "Respond naturally and conversationally in warm, everyday English matching the user's tone, "
+        "without robotic phrasing or switching to Hindi/Hinglish."
+    ),
+    "hi": (
+        "\n[SELECTED LANGUAGE: Hindi (Devanagari)]\n"
+        "Respond naturally and conversationally in warm, everyday Hindi written in Devanagari script (हिंदी), "
+        "matching the user's tone without robotic phrasing or overly formal Sanskritized words."
+    ),
+    "hinglish": (
+        "\n[SELECTED LANGUAGE: Hinglish]\n"
+        "Respond naturally and conversationally in warm, everyday Hinglish (casual Hindi-English mix in Latin script, "
+        "or matching the user's Latin/Devanagari style), like a close friend texting on WhatsApp without robotic phrasing."
+    ),
+}
+
 async def get_welcome_greeting(mode: str = "daily", session_id: str = "default") -> str:
     """
     Generate an initial proactive welcome message based on the active mode.
@@ -226,6 +244,7 @@ async def generate_chat_response(
     session_id: str = "default",
     mode: str = "daily",
     location: Optional[Union[dict, str, Any]] = None,
+    language: Optional[str] = None,
 ) -> str:
     """
     Generate a direct chat response using Gemini based on the active mode with multi-turn memory
@@ -258,6 +277,11 @@ async def generate_chat_response(
         return fallback
 
     system_instruction = SYSTEM_PROMPTS.get(mode, SYSTEM_PROMPTS["daily"])
+
+    # Enforce selected language in daily mode
+    if mode == "daily":
+        lang_key = (language or "en").strip().lower()
+        system_instruction += DAILY_LANGUAGE_INSTRUCTIONS.get(lang_key, DAILY_LANGUAGE_INSTRUCTIONS["en"])
 
     # If location is available, inject into system context seamlessly for emergency mode
     if mode == "emergency" and has_location:

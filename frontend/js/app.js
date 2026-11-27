@@ -434,7 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
     const btnSendChat = document.getElementById('btn-send-chat');
-    const btnViewStatus = document.getElementById('btn-view-status');
     const btnChatInfo = document.getElementById('btn-chat-info');
     const btnChatSwitchLang = document.getElementById('btn-chat-switch-lang');
     const currentLangIndicator = document.getElementById('current-lang-indicator');
@@ -2589,6 +2588,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function selectSakhiLanguage(langKey) {
         const langConfig = SAKHI_LANGUAGES[langKey];
         if (!langConfig) return;
+        const previousLang = selectedSakhiLang;
         selectedSakhiLang = langKey;
 
         if (currentLangIndicator) {
@@ -2616,8 +2616,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Render prompt chips
         renderSakhiPromptChips(langConfig.chips);
 
-        // Render initial greeting if messages container is empty
-        if (chatMessages && chatMessages.children.length === 0) {
+        // Render initial greeting if messages container is empty, or announce language switch
+        if (chatMessages && (chatMessages.children.length === 0 || (previousLang && previousLang !== langKey))) {
             appendMessage(langConfig.greeting, 'bot');
         }
     }
@@ -2625,6 +2625,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function switchSakhiLanguagePrompt() {
         if (sakhiLangSelection) {
             sakhiLangSelection.classList.remove('hidden');
+        }
+        if (chatMessages) {
+            chatMessages.classList.add('hidden');
         }
         if (sakhiPromptChips) {
             sakhiPromptChips.classList.add('hidden');
@@ -2666,10 +2669,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnBackChat) {
         btnBackChat.addEventListener('click', showDashboardScreen);
-    }
-
-    if (btnViewStatus) {
-        btnViewStatus.addEventListener('click', showStatusScreen);
     }
 
     if (btnStatusBack) {
@@ -2732,6 +2731,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 message: text,
                 session_id: sessionId,
                 mode: 'daily',
+                language: selectedSakhiLang || 'en',
                 location: currentLocation
             };
 

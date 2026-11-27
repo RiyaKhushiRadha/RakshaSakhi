@@ -21,6 +21,7 @@ class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = "default"
     mode: Optional[str] = "daily"
+    language: Optional[str] = None
     location: Optional[Union[dict, str, Any]] = None
 
 
